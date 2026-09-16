@@ -12,13 +12,14 @@ as such. **Cost:** about a day.
 
 The design rests on [D4](../decisions.md#d4--rules-and-user-corrections-no-llm) — rules
 and user corrections, no model. The argument for it is
-[strong and evidence-backed](../research/03-categorization-without-an-llm.md), but the
-coverage figure is **unmeasured on real Saudi messages**, and the only published number
-found anywhere is Mizan's **~79%**.
+[strong and evidence-backed](../research/03-categorization-without-an-llm.md), but its
+coverage is **unmeasured on real Saudi messages**, and the one figure circulating in prior
+art — Mizan's "~79%" — is
+[too ambiguously worded to inherit](../research/02-prior-art.md#mizan-kioo20082008-specmizan).
 
-79% is not obviously good enough. One message in five landing wrong is the difference
-between an app you trust and an app you abandon. So we measure it before committing,
-on real messages, and let the number decide.
+So there is no trustworthy baseline to borrow. We produce our own, on real messages,
+before committing to the build — because the gap between "works" and "nearly works" is the
+gap between an app you trust and one you abandon.
 
 ## The three numbers
 

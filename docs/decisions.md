@@ -16,10 +16,22 @@ not a rewrite.
 
 ### D2 — Distribute via F-Droid and GitHub APK, not Google Play
 
-**Why:** `READ_SMS` / `RECEIVE_SMS` are Play-restricted permissions. An app must be the
-device's default SMS handler or win a declaration-form exception, and "read SMS to track
-spending" is precisely the use case Google denies. Outside Play the permission is
-unrestricted, and F-Droid is the natural home for an auditable privacy tool anyway.
+**Why:** `READ_SMS` / `RECEIVE_SMS` are Play-**restricted** permissions. An app must be
+the device's default SMS handler or win an exception via the Restricted Permission
+Declaration Form. Outside Play the permission is unrestricted, and F-Droid is the natural
+home for an auditable privacy tool.
+
+> **Correction, verified 2026-09-16.** An earlier draft of this document claimed Google
+> *denies* this use case. **That was wrong.** PennyWiseAI ships on Google Play today with
+> read-only `READ_SMS` for exactly this purpose, which proves the declaration-form
+> exception is obtainable.
+>
+> D2 therefore stands on a different and weaker footing than first written: it is a
+> **risk-and-friction judgement, not an impossibility**. Play access here is
+> discretionary, re-reviewable and revocable — and losing it after launch would strand
+> users mid-product. F-Droid-first removes that dependency, and a Play build can be added
+> later **without changing a line of code**, since it is a distribution choice rather than
+> an architectural one.
 
 **Cost accepted:** smaller reach; users must sideload or add the F-Droid repo.
 
@@ -49,7 +61,10 @@ Full argument and evidence: [research 03](research/03-categorization-without-an-
 **Hedge, deliberately kept:** the categorizer is a **pluggable slot**. If measurement
 shows the unknown-merchant tail is larger than expected, a small on-device model can
 fill that one step later without touching the rest of the engine. The door is left
-open on purpose; we just aren't building on it.
+open on purpose; we just aren't building on it. What that model would concretely be —
+runtime, size, cost, iOS status — is worked out in
+[research 04](research/04-on-device-model-option.md), so the option is real rather than
+rhetorical.
 
 ---
 
@@ -67,9 +82,10 @@ open on purpose; we just aren't building on it.
 ## The assumption still unproven
 
 **D4 rests on a coverage number nobody has measured on real Saudi messages.** The one
-published figure found during research — from the Mizan project — was roughly **79%**,
-not the ~95% that gets casually claimed. That gap is the difference between a good app
-and an annoying one.
+figure circulating in prior art — Mizan's "~79%" — turns out to be
+[too ambiguously worded to inherit](research/02-prior-art.md#mizan-kioo20082008-specmizan),
+and the ~95% casually claimed for rule-based parsing is unsourced. There is simply no
+trustworthy baseline, in either direction.
 
 This is why [the spike](spike/README.md) exists and why the design below is marked
 draft. If measured auto-categorization comes back weak, D4 is the decision that changes.

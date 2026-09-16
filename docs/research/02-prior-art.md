@@ -78,16 +78,43 @@ Its **categorizer** is examined separately in
 [research 03](03-categorization-without-an-llm.md); the short version is that it
 contains no machine learning whatsoever.
 
+**Its distribution is the most useful fact in this file.** PennyWiseAI ships on
+**Google Play, the Apple App Store, F-Droid and GitHub Releases**, and its README states:
+*"Grant SMS permission (read-only) — no account creation, no inbox changes, no messages
+sent."*
+
+Two consequences, both of which corrected earlier drafts of this repo:
+
+1. **`READ_SMS` on Google Play is achievable** for transaction parsing. It forced the
+   rewrite of [D2](../decisions.md#d2--distribute-via-f-droid-and-github-apk-not-google-play).
+2. **Its iOS app cannot be doing the same thing** — iOS has no SMS-read API. The codebase
+   contains an `ImportStatementUseCase`, i.e. the iOS story is statement import, not
+   message capture. That independently corroborates
+   [D1](../decisions.md#d1--android-first-ios-is-phase-2): even a team that solved Play
+   distribution could not solve iOS SMS, because it is not solvable.
+
 ### Mizan (`kioo20082008-spec/mizan`)
 
-A Saudi SMS parser project that did the thing nobody else did: **published a measured
-number**. After a parser overhaul using regex alternation over merchant anchors
-(`لدى` / `عند` / …), coverage of genuine transactions reached roughly **79%**, with the
-remainder correctly rejected as non-transactional.
+A Saudi SMS parser project that did the thing nobody else did: **published a number**.
+After a parser overhaul using regex alternation over merchant anchors (`لدى` / `عند` / …),
+its PR reports that *"coverage of genuine transactions went from a small fraction to ~79%,
+with the remainder correctly rejected as non-transactional."*
 
-That 79% is the most useful figure in this entire research file. It is the honest
-baseline, it is well below the ~95% that gets casually claimed for rule-based parsing,
-and it is the reason [the spike](../spike/README.md) measures before we build.
+**That sentence is ambiguous, and we should not build on it.** It reads two ways:
+
+- **(a)** 79% of genuine transactions parsed — 21% missed; or
+- **(b)** 79% of a mixed corpus *were* transactions and all parsed, while the other 21%
+  were non-transactional messages correctly rejected — i.e. near-total accuracy.
+
+Reading **(b)** is the more logical one, since a *genuine* transaction cannot be
+"correctly rejected as non-transactional". But the wording does not settle it, and the
+corpus size is never stated. An earlier draft of this file treated it as (a) and built a
+pessimistic "1-in-5 messages land wrong" narrative on top — that was over-reading someone
+else's PR description.
+
+The durable conclusion is **not a number**: no one has published a trustworthy,
+reproducible coverage measurement for Saudi bank SMS parsing on a real corpus. *That
+absence* is what justifies [the spike](../spike/README.md).
 
 ### Others
 
@@ -101,7 +128,8 @@ fields. Useful as structural references, not for Saudi coverage.
    boring**. The formats are labeled key-value forms.
 2. Categorization by keyword dictionary is **what real products actually do**.
 3. Nobody has published strong Saudi merchant coverage — the gap this project fills.
-4. The realistic coverage baseline is **~79%**, not ~95%.
+4. **No trustworthy published coverage measurement exists** for Saudi SMS parsing — so
+   there is no baseline to inherit, and we must produce our own.
 
 ## Sources
 

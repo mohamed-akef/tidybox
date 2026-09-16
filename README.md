@@ -78,6 +78,7 @@ fixtures/              redacted real SMS — the test corpus
 - [Research: platform constraints](docs/research/01-platform-constraints.md)
 - [Research: prior art](docs/research/02-prior-art.md)
 - [Research: categorization without an LLM](docs/research/03-categorization-without-an-llm.md)
+- [Research: the on-device model option, if we ever need it](docs/research/04-on-device-model-option.md)
 - [The spike: measure before building](docs/spike/README.md)
 - [How to contribute redacted SMS fixtures](fixtures/README.md)
 

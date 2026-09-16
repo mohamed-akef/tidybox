@@ -43,10 +43,17 @@ sender filter accepts alphanumeric bank sender IDs or only phone numbers (it may
 an app must either be the device's **default SMS handler** or win an exception via the
 Restricted Permission Declaration Form.
 
-"Read SMS to extract financial data" is exactly the use case Google denies. Play policy
-explicitly addresses budgeting apps and SMS history, and the practical record is that
-non-default-handler finance apps get refused. Google has also taken enforcement action
-at scale against apps abusing SMS access.
+Play policy explicitly addresses budgeting apps and SMS history, many non-default-handler
+finance apps have been refused, and Google has taken enforcement action at scale against
+apps abusing SMS access. It is a genuinely hostile path.
+
+**But it is not a closed one, and saying otherwise would be false.** PennyWiseAI ships on
+Google Play today with read-only `READ_SMS` for transaction parsing — so the declaration
+form *can* be won for this exact use case. What Play costs is not possibility but
+**certainty**: the grant is discretionary, re-reviewable and revocable, and an app that
+loses it post-launch strands its users. That is the real argument for
+[D2](../decisions.md#d2--distribute-via-f-droid-and-github-apk-not-google-play), and it is
+a weaker one than "Google says no".
 
 ### The two ways around it
 

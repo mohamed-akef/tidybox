@@ -40,9 +40,10 @@ This is the legitimate question. Here is what a real shipping product uses.
 
 ### What PennyWiseAI actually does
 
-PennyWiseAI is an open-source Android SMS expense tracker on the Play Store with active
-Saudi parser development. Its **entire** categorization engine is a Kotlin file of
-keyword sets:
+PennyWiseAI is an open-source SMS expense tracker with active Saudi parser development,
+shipping on Google Play, the App Store, F-Droid and GitHub Releases — with read-only
+`READ_SMS` on Android. Its **entire** categorization engine is a Kotlin file of keyword
+sets:
 
 ```kotlin
 private val FOOD = setOf("swiggy", "zomato", "dominos", "pizza", "burger",
@@ -133,6 +134,10 @@ unknown-merchant tail is larger than expected, a small on-device model can fill 
 step later without touching extraction, storage or UI. The door stays open. We just are
 not building the foundation on it.
 
+**That option is costed, not hand-waved** — runtime, model sizes, download weight, battery
+and the current iOS situation are all worked out in
+[research 04](04-on-device-model-option.md).
+
 ---
 
 ## The other reading of the question: payment vs promotion vs important
@@ -154,7 +159,7 @@ Sender plus template match. No meaning required.
 ## Conclusion, stated honestly
 
 Rules are the right foundation, and the evidence is that real products ship exactly this.
-But **the coverage number is unmeasured on real Saudi messages**, and the only published
-figure — Mizan's ~79% — is well below comfortable.
+But **the coverage number is unmeasured on real Saudi messages**, and the one figure in
+circulation is too ambiguously worded to inherit.
 
 That is why the next step is [a measurement, not a build](../spike/README.md).
