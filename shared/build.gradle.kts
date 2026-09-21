@@ -19,3 +19,8 @@ kotlin {
         }
     }
 }
+
+// The golden corpus is read at runtime from ../fixtures; declare it so edits re-run the tests.
+tasks.named<Test>("jvmTest") {
+    inputs.file("../fixtures/corpus.jsonl")
+}
