@@ -31,4 +31,10 @@
     <string name="exported">تم التصدير</string>
     <string name="imported_backup">تم استيراد %1$d رسالة و%2$d تصحيح</string>
     <string name="import_failed">فشل الاستيراد: عبارة سرية خاطئة أو ملف غير صالح</string>
+    <string name="rulepack_title">حزمة القواعد</string>
+    <string name="rulepack_help">قاموس المتاجر والكلمات المفتاحية. تأتي مع التطبيق، ويمكن تحميل حزمة أحدث من ملف هنا. تصحيحاتك لها الأولوية دائمًا.</string>
+    <string name="rulepack_current">النشطة: %1$s الإصدار %2$d</string>
+    <string name="rulepack_load">تحميل ملف حزمة</string>
+    <string name="rulepack_reset">استخدام المضمّنة</string>
+    <string name="rulepack_bad">ملف حزمة غير صالح</string>
 </resources>

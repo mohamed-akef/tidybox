@@ -26,6 +26,22 @@ kotlin {
     }
 }
 
+// rulepacks/merchants.json is the single source of the bundled merchant pack. Compile it in as a
+// string constant so commonMain needs no resource loading on any platform.
+val rulepackSrc = rootProject.file("rulepacks/merchants.json")
+val generatedDir = layout.buildDirectory.dir("generated/rulepack/commonMain/kotlin")
+val generateBundledRulePack by tasks.registering {
+    inputs.file(rulepackSrc)
+    outputs.dir(generatedDir)
+    doLast {
+        val out = generatedDir.get().file("co/raseed/engine/BundledRulePack.kt").asFile
+        out.parentFile.mkdirs()
+        val body = rulepackSrc.readText().replace("$", "\${'$'}")
+        out.writeText("package co.raseed.engine\n\n// GENERATED from rulepacks/merchants.json — edit that file, not this one.\ninternal const val BUNDLED_RULEPACK_JSON: String = \"\"\"$body\"\"\"\n")
+    }
+}
+kotlin.sourceSets.commonMain { kotlin.srcDir(generateBundledRulePack) }
+
 // The golden corpus is read at runtime from ../fixtures; declare it so edits re-run the tests.
 tasks.named<Test>("jvmTest") {
     inputs.file("../fixtures/corpus.jsonl")

@@ -188,8 +188,34 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             onReload()
         }
     }
+    var pack by remember { mutableStateOf(RulePacks.current(ctx)) }
+    var packStatus by remember { mutableStateOf("") }
+    val loadPack = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            packStatus = runCatching {
+                withContext(Dispatchers.IO) {
+                    val text = ctx.contentResolver.openInputStream(uri)!!.use { String(it.readBytes()) }
+                    RulePacks.install(ctx, text).also { recategorizeAll(Db.get(ctx), it) }
+                }
+            }.map { pack = it; "" }.getOrElse { ctx.getString(R.string.rulepack_bad) }
+            onReload()
+        }
+    }
     Column(modifier) {
-        Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.rulepack_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.rulepack_help), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.rulepack_current, pack.name, pack.version), style = MaterialTheme.typography.bodySmall)
+        Row {
+            TextButton(onClick = { loadPack.launch(arrayOf("application/json", "*/*")) }) { Text(stringResource(R.string.rulepack_load)) }
+            TextButton(onClick = {
+                RulePacks.reset(ctx); pack = RulePacks.current(ctx)
+                scope.launch { withContext(Dispatchers.IO) { recategorizeAll(Db.get(ctx), pack) }; onReload() }
+            }) { Text(stringResource(R.string.rulepack_reset)) }
+            Text(packStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+        }
+
+        Text(stringResource(R.string.backup_title), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.backup_help), style = MaterialTheme.typography.bodySmall)
         OutlinedTextField(passphrase, { passphrase = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.passphrase)) }, singleLine = true,
             visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())

@@ -31,4 +31,10 @@
     <string name="exported">Exported</string>
     <string name="imported_backup">Imported %1$d messages, %2$d corrections</string>
     <string name="import_failed">Import failed: wrong passphrase or not a Raseed file</string>
+    <string name="rulepack_title">Rule pack</string>
+    <string name="rulepack_help">The merchant dictionary and keywords. Ships with the app; a newer pack file can be loaded here. Your corrections always win.</string>
+    <string name="rulepack_current">Active: %1$s v%2$d</string>
+    <string name="rulepack_load">Load pack file</string>
+    <string name="rulepack_reset">Use bundled</string>
+    <string name="rulepack_bad">Not a valid rule pack</string>
 </resources>

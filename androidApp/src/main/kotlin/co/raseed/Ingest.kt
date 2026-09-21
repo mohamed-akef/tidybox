@@ -4,7 +4,11 @@ import android.content.Context
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import co.raseed.db.RaseedDb
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
+import co.raseed.engine.CategoryReason
 import co.raseed.engine.EngineResult
+import co.raseed.engine.RulePack
+import co.raseed.engine.Transaction
+import co.raseed.engine.TxType
 import co.raseed.engine.categorize
 import co.raseed.engine.extract
 import co.raseed.engine.normalizeMerchant
@@ -30,6 +34,21 @@ object Senders {
     }
     fun allows(context: Context, sender: String?): Boolean =
         sender != null && get(context).any { it.equals(sender.trim(), ignoreCase = true) }
+}
+
+/** The active merchant pack: a user-imported JSON if one parsed, else the bundled one (design §6). */
+object RulePacks {
+    private const val PREFS = "raseed-rulepack"
+    private const val KEY = "json"
+    fun current(context: Context): RulePack {
+        val text = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null) ?: return RulePack.bundled
+        return runCatching { RulePack.parse(text) }.getOrDefault(RulePack.bundled)
+    }
+    /** Parses first; a malformed pack is rejected and the previous one stays. */
+    fun install(context: Context, text: String): RulePack = RulePack.parse(text).also {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, text).commit()
+    }
+    fun reset(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY).commit()
 }
 
 object Db {
@@ -60,14 +79,26 @@ fun correct(db: RaseedDb, merchantKey: String, category: String) {
     db.raseedQueries.applyRule(category, merchantKey)
 }
 
+/** Re-categorize every transaction with the given pack. User overrides are kept as they are. */
+fun recategorizeAll(db: RaseedDb, pack: RulePack) {
+    val overrides = db.raseedQueries.rules().executeAsList().associate { it.merchant_key to it.category }
+    db.transaction {
+        for (t in db.raseedQueries.allTxForRecategorize().executeAsList()) {
+            if (t.category_reason == CategoryReason.OVERRIDE.name) continue
+            val c = categorize(Transaction(TxType.valueOf(t.type), 0.0, "SAR", t.merchant, null, null, null), overrides, pack)
+            db.raseedQueries.setCategory(c.category, c.reason.name, t.id)
+        }
+    }
+}
+
 /** Parse everything stored but not yet parsed. Pure engine in, rows out. Safe to run any time. */
-fun parsePending(db: RaseedDb) {
+fun parsePending(db: RaseedDb, pack: RulePack = RulePack.bundled) {
     val overrides = db.raseedQueries.rules().executeAsList().associate { it.merchant_key to it.category }
     for (m in db.raseedQueries.unparsed().executeAsList()) {
         when (val r = extract(m.body)) {
             is EngineResult.Parsed -> {
                 val tx = r.tx
-                val c = categorize(tx, overrides)
+                val c = categorize(tx, overrides, pack)
                 db.raseedQueries.insertTx(
                     m.id, tx.type.name, tx.amount, tx.currency, tx.merchant, tx.merchant?.let(::normalizeMerchant), tx.cardLast4,
                     tx.occurredAt?.let { "%04d-%02d-%02d %02d:%02d".format(it.year, it.month, it.day, it.hour, it.minute) },
