@@ -3,6 +3,7 @@ package co.raseed
 import android.content.Context
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import co.raseed.db.RaseedDb
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import co.raseed.engine.EngineResult
 import co.raseed.engine.categorize
 import co.raseed.engine.extract
@@ -24,7 +25,13 @@ fun isAllowedSender(sender: String?): Boolean =
 object Db {
     @Volatile private var instance: RaseedDb? = null
     fun get(context: Context): RaseedDb = instance ?: synchronized(this) {
-        instance ?: RaseedDb(AndroidSqliteDriver(RaseedDb.Schema, context.applicationContext, "raseed.db")).also { instance = it }
+        instance ?: run {
+            System.loadLibrary("sqlcipher")
+            val app = context.applicationContext
+            // Design §3: SQLCipher, key held in the Android Keystore. The passphrase is cleared by the factory after open.
+            val factory = SupportOpenHelperFactory(dbPassphrase(app))
+            RaseedDb(AndroidSqliteDriver(RaseedDb.Schema, app, "raseed.db", factory = factory)).also { instance = it }
+        }
     }
 }
 

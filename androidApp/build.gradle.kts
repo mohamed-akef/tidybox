@@ -42,6 +42,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.work:work-runtime-ktx:2.11.2")
     implementation("app.cash.sqldelight:android-driver:2.1.0")
+    implementation("net.zetetic:sqlcipher-android:4.9.0@aar")
+    implementation("androidx.sqlite:sqlite-ktx:2.5.2")
     implementation("app.cash.sqldelight:coroutines-extensions:2.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 }

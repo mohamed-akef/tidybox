@@ -1,5 +1,5 @@
 -- Design §3. Raw messages are kept so a rule-pack update can re-parse history (O4).
--- ponytail: plain SQLite in this slice; SQLCipher + Keystore key is the next Android PR.
+-- Encrypted at rest: SQLCipher, passphrase wrapped by an AndroidKeyStore AES key (DbKey.kt).
 
 CREATE TABLE message (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
