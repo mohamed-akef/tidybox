@@ -1,0 +1,50 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+# Builds the release APK and attaches it to a GitHub Release for the tag.
+# Unsigned until a signing key exists: add secrets RASEED_KEYSTORE_B64, RASEED_KEYSTORE_PASSWORD,
+# RASEED_KEY_ALIAS, RASEED_KEY_PASSWORD and the signing step below activates. F-Droid builds
+# from source and signs with its own key, so the unsigned artifact is still the right input there.
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew :shared:jvmTest :androidApp:testDebugUnitTest :androidApp:assembleRelease --no-daemon
+      - name: privacy gate — no INTERNET permission
+        run: |
+          AAPT=$(ls -d $ANDROID_HOME/build-tools/*/aapt2 | tail -1)
+          $AAPT dump permissions androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk | tee perms.txt
+          ! grep -q "android.permission.INTERNET" perms.txt
+      - name: sign (only when secrets exist)
+        if: ${{ env.KEYSTORE_B64 != '' }}
+        env:
+          KEYSTORE_B64: ${{ secrets.RASEED_KEYSTORE_B64 }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > ks.jks
+          APKSIGNER=$(ls -d $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          $APKSIGNER sign --ks ks.jks --ks-pass "pass:${{ secrets.RASEED_KEYSTORE_PASSWORD }}" \
+            --ks-key-alias "${{ secrets.RASEED_KEY_ALIAS }}" --key-pass "pass:${{ secrets.RASEED_KEY_PASSWORD }}" \
+            --out androidApp/build/outputs/apk/release/raseed-${{ github.ref_name }}.apk \
+            androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
+          rm ks.jks
+      - name: name the artifact
+        run: |
+          cd androidApp/build/outputs/apk/release
+          [ -f raseed-${{ github.ref_name }}.apk ] || cp androidApp-release-unsigned.apk raseed-${{ github.ref_name }}-unsigned.apk
+          sha256sum raseed-*.apk > SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            androidApp/build/outputs/apk/release/raseed-*.apk
+            androidApp/build/outputs/apk/release/SHA256SUMS
+          generate_release_notes: true
