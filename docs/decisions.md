@@ -68,27 +68,28 @@ over the network would be a real attack surface in an app whose entire pitch is 
 **Boundary:** download only. No request body, no identifier, no telemetry, no upload of
 any kind — and the whole mechanism can be disabled, falling back to the bundled pack.
 
-### D4 — Rules for extraction; rules + user corrections + a small embedding model for categorization; no LLM
+### D4 — Rules and user corrections; no model
 
 **Extraction:** no model, anywhere. Bank SMS are labeled forms in every country. Regex
 templates per bank, contributed as signed rule packs.
 
-**Categorization** (revised 2026-09-22, after [D6](#d6--global-not-saudi-only) made a
-pre-seeded merchant dictionary impossible): strict priority —
-user override → exact dictionary → keyword rules → **embedding nearest-neighbour** →
-`Uncategorized`. The model is a small multilingual **sentence-embedding** model
-(MiniLM class, tens of MB), not a generative LLM. It embeds the merchant string and
-compares it to category vectors; below a similarity threshold it answers *Uncategorized*
-rather than guessing. That keeps the two properties the original D4 was protecting:
-deterministic, and "I don't know" instead of a confident wrong answer.
+**Categorization:** strict priority — user override → exact dictionary → keyword rules →
+fuzzy dictionary match → `Uncategorized`. The dictionary and keyword rules live in the
+signed rule pack ([D3](#d3--signed-download-only-rule-packs)) and update every release.
 
-**What updates, and where:** the embedding model ships inside the app binary and changes
-rarely. The dictionary, keyword rules and category vectors live in the signed rule pack
-([D3](#d3--signed-download-only-rule-packs)) and update every release.
+**History of this decision.** On 2026-09-22, after [D6](#d6--global-not-saudi-only) made a
+pre-seeded global dictionary impossible, a small sentence-embedding classifier was added as
+a step before `Uncategorized`. [The spike](spike/RESULT.md) then measured it on 174 real
+messages: **rules alone scored 72% correct / 0% wrong / 28% abstain on held-out merchants,
+and the embedding step changed nothing** — every abstention was a merchant whose category
+is not in the string, and the model's proposals for those were noise with one confident
+wrong answer. The clause was removed the same day. This is the outcome
+[research 03](research/03-categorization-without-an-llm.md) predicted.
 
-**Not chosen:** a generative on-device LLM (Gemma-class). Costed in
-[research 04](research/04-on-device-model-option.md). It reopens only if the spike shows
-the embedding classifier fails on real messages.
+**Hedge, kept:** the categorizer remains a **pluggable slot**, empty. Both model options —
+embedding classifier and generative LLM (costed in
+[research 04](research/04-on-device-model-option.md)) — reopen only if a corpus from more
+than two people shows readable merchant names the rules miss.
 
 ### D5 — Kotlin, not Flutter; Kotlin Multiplatform for the shared engine
 
@@ -97,7 +98,7 @@ On-device ML is native on both sides (LiteRT on Android, Core ML on iOS). PennyW
 closest prior art, is already KMP with the parser in `commonMain`. Performance is *not*
 the reason — regex over 200 bytes is microseconds in any language.
 
-**Shape:** `shared/` = engine + classifier (`commonMain`, no I/O). `androidApp/` = SMS
+**Shape:** `shared/` = engine (`commonMain`, no I/O). `androidApp/` = SMS
 receiver + Compose UI. `iosApp/` later, same `shared/`.
 
 **Cost accepted:** two UIs eventually (Compose on Android, SwiftUI or Compose
@@ -110,13 +111,13 @@ different ingestion story anyway ([D1](#d1--android-first-ios-is-phase-2)).
 bank templates and the merchant dictionary, and both already live in the rule pack.
 Saudi banks remain the first fixtures because that is where the real messages are.
 
-**Consequence:** no pre-seeded merchant dictionary can cover 50 countries, which is what
-forced the embedding step into [D4](#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm).
-The rule-pack contribution flywheel is the product, not a nice-to-have.
+**Consequence:** no pre-seeded merchant dictionary can cover 50 countries. The rule-pack
+contribution flywheel is the product, not a nice-to-have — and the spike showed that the
+dictionary and keywords, not a model, are where every categorization hit comes from.
 
 ### D7 — Privacy is the product
 
-Everything in [D4](#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm)
+Everything in [D4](#d4--rules-and-user-corrections-no-model)
 runs on the device. No server, no account, no sync, no telemetry; the only network call
 is a signed download. This is the constraint every other decision is checked against.
 
@@ -141,6 +142,7 @@ figure circulating in prior art — Mizan's "~79%" — turns out to be
 and the ~95% casually claimed for rule-based parsing is unsourced. There is simply no
 trustworthy baseline, in either direction.
 
-This is why [the spike](spike/README.md) exists and why the design below is marked
-draft. If measured auto-categorization comes back weak even with the embedding step, D4
-is the decision that changes — the generative-LLM option in research 04 reopens.
+This is why [the spike](spike/README.md) exists. **It has now run** — see
+[the result](spike/RESULT.md): extraction 104/104, rules 72% correct / 0% wrong on held-out
+merchants, model adds nothing. D4 stands. The number that would reopen it is a *wrong*
+rate above 2% or a readable-merchant miss rate that a bigger dictionary cannot close.

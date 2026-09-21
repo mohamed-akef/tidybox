@@ -10,7 +10,7 @@ as such. **Cost:** about a day.
 
 ## Why this exists
 
-The design rests on [D4](../decisions.md#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm) — rules
+The design rests on [D4](../decisions.md#d4--rules-and-user-corrections-no-model) — rules
 and user corrections, no model. The argument for it is
 [strong and evidence-backed](../research/03-categorization-without-an-llm.md), but its
 coverage is **unmeasured on real messages**, and the one figure circulating in prior
@@ -84,4 +84,7 @@ spending a day before spending a month.
 
 ## Status
 
-**Blocked on real message samples.** Everything else is ready to run.
+**Done 2026-09-22** on a 174-message public corpus — see [RESULT.md](RESULT.md).
+Extraction 104/104; rules 72% correct / 0% wrong / 28% abstain on held-out merchants;
+the embedding step added nothing and was removed from D4. Re-run when a corpus from
+more than two people exists. S1–S4 still open.
