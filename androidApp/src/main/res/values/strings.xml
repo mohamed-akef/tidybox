@@ -37,4 +37,7 @@
     <string name="rulepack_load">Load pack file</string>
     <string name="rulepack_reset">Use bundled</string>
     <string name="rulepack_bad">Not a valid rule pack</string>
+    <string name="privacy_title">Privacy</string>
+    <string name="keep_raw">Keep raw messages</string>
+    <string name="keep_raw_help">On: a newer rule pack can re-read your history, and the backup file contains your messages. Off: message text is erased right after it is read, and history cannot be re-derived. Turning it off erases stored text now.</string>
 </resources>

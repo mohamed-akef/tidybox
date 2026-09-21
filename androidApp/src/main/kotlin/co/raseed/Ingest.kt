@@ -51,6 +51,17 @@ object RulePacks {
     fun reset(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY).commit()
 }
 
+/** O4. Default keep: enables re-parse after a rule-pack update, "why this category", and backup. */
+object KeepRaw {
+    private const val PREFS = "raseed-privacy"
+    private const val KEY = "keep_raw"
+    fun get(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY, true)
+    fun set(context: Context, keep: Boolean, db: RaseedDb) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY, keep).commit()
+        if (!keep) db.raseedQueries.blankBodies()
+    }
+}
+
 object Db {
     @Volatile private var instance: RaseedDb? = null
     fun get(context: Context): RaseedDb = instance ?: synchronized(this) {
@@ -92,7 +103,7 @@ fun recategorizeAll(db: RaseedDb, pack: RulePack) {
 }
 
 /** Parse everything stored but not yet parsed. Pure engine in, rows out. Safe to run any time. */
-fun parsePending(db: RaseedDb, pack: RulePack = RulePack.bundled) {
+fun parsePending(db: RaseedDb, pack: RulePack = RulePack.bundled, keepRaw: Boolean = true) {
     val overrides = db.raseedQueries.rules().executeAsList().associate { it.merchant_key to it.category }
     for (m in db.raseedQueries.unparsed().executeAsList()) {
         when (val r = extract(m.body)) {
@@ -109,4 +120,5 @@ fun parsePending(db: RaseedDb, pack: RulePack = RulePack.bundled) {
         }
         db.raseedQueries.markParsed(m.id)
     }
+    if (!keepRaw) db.raseedQueries.blankBodies()
 }

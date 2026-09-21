@@ -3,6 +3,7 @@ package co.raseed.sms
 import android.content.Context
 import android.provider.Telephony
 import co.raseed.Db
+import co.raseed.KeepRaw
 import co.raseed.RulePacks
 import co.raseed.Senders
 import co.raseed.parsePending
@@ -31,7 +32,7 @@ fun backfill(context: Context, sinceMillis: Long, onProgress: (Int) -> Unit = {}
             if (stored % 25 == 0) onProgress(stored)
         }
     }
-    parsePending(db, RulePacks.current(context))
+    parsePending(db, RulePacks.current(context), KeepRaw.get(context))
     onProgress(stored)
     return stored
 }

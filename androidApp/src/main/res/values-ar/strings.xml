@@ -37,4 +37,7 @@
     <string name="rulepack_load">تحميل ملف حزمة</string>
     <string name="rulepack_reset">استخدام المضمّنة</string>
     <string name="rulepack_bad">ملف حزمة غير صالح</string>
+    <string name="privacy_title">الخصوصية</string>
+    <string name="keep_raw">الاحتفاظ بنص الرسائل</string>
+    <string name="keep_raw_help">مفعّل: حزمة قواعد أحدث تستطيع إعادة قراءة سجلك، وملف النسخ الاحتياطي يحوي رسائلك. معطّل: يُمسح نص الرسالة فور قراءتها ولا يمكن إعادة اشتقاق السجل. الإيقاف يمسح النصوص المخزّنة الآن.</string>
 </resources>
