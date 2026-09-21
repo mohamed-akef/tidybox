@@ -1,0 +1,52 @@
+-- Design §3. Raw messages are kept so a rule-pack update can re-parse history (O4).
+-- ponytail: plain SQLite in this slice; SQLCipher + Keystore key is the next Android PR.
+
+CREATE TABLE message (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hash TEXT NOT NULL UNIQUE,          -- sha256(sender, body, received_at): exact replay guard
+    sender TEXT NOT NULL,
+    body TEXT NOT NULL,
+    received_at INTEGER NOT NULL,       -- epoch millis, from the SMS itself
+    parsed INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE tx (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message_id INTEGER NOT NULL UNIQUE REFERENCES message(id),
+    type TEXT NOT NULL,
+    amount REAL NOT NULL,
+    currency TEXT NOT NULL,
+    merchant TEXT,
+    card_last4 TEXT,
+    occurred_at TEXT,                   -- ISO-ish from the message; NULL when the bank gave none
+    category TEXT,
+    category_reason TEXT NOT NULL
+);
+
+CREATE TABLE merchant_rule (
+    merchant_key TEXT NOT NULL PRIMARY KEY,   -- normalizeMerchant()
+    category TEXT NOT NULL
+);
+
+insertMessage:
+INSERT OR IGNORE INTO message(hash, sender, body, received_at) VALUES (?, ?, ?, ?);
+
+unparsed:
+SELECT * FROM message WHERE parsed = 0 ORDER BY received_at;
+
+markParsed:
+UPDATE message SET parsed = 1 WHERE id = ?;
+
+insertTx:
+INSERT OR IGNORE INTO tx(message_id, type, amount, currency, merchant, card_last4, occurred_at, category, category_reason)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+recentTx:
+SELECT tx.*, message.received_at FROM tx JOIN message ON message.id = tx.message_id
+ORDER BY message.received_at DESC LIMIT 500;
+
+rules:
+SELECT * FROM merchant_rule;
+
+upsertRule:
+INSERT OR REPLACE INTO merchant_rule(merchant_key, category) VALUES (?, ?);
