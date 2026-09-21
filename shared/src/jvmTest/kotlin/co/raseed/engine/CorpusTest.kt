@@ -1,17 +1,8 @@
 package co.raseed.engine
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-
-@Serializable
-private data class Expect(val type: String, val amount: Double, val currency: String, val merchant: String?, val category: String)
-
-@Serializable
-private data class Row(val id: Int, val source: String, val text: String, val expect: Expect?)
 
 /**
  * Golden corpus: fixtures/corpus.jsonl, 174 messages, labeled during the spike.
@@ -19,8 +10,7 @@ private data class Row(val id: Int, val source: String, val text: String, val ex
  * The bar is the spike's bar: every row, not a percentage.
  */
 class CorpusTest {
-    private val json = Json { ignoreUnknownKeys = true }
-    private val rows = File("../fixtures/corpus.jsonl").readLines().filter { it.isNotBlank() }.map { json.decodeFromString<Row>(it) }
+    private val rows = corpus
 
     @Test
     fun corpusIsNotEmpty() = assertTrue(rows.size >= 174, "expected the full corpus, got ${rows.size}")
