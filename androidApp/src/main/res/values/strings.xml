@@ -23,4 +23,12 @@
     <string name="received">Received</string>
     <string name="pick_category">Category for %1$s</string>
     <string name="empty">No transactions yet. Import history or wait for the next bank SMS.</string>
+    <string name="backup_title">Backup</string>
+    <string name="backup_help">An encrypted file of your raw messages and corrections. Keep it anywhere; only this passphrase opens it.</string>
+    <string name="passphrase">Passphrase</string>
+    <string name="export">Export</string>
+    <string name="import_file">Import</string>
+    <string name="exported">Exported</string>
+    <string name="imported_backup">Imported %1$d messages, %2$d corrections</string>
+    <string name="import_failed">Import failed: wrong passphrase or not a Raseed file</string>
 </resources>

@@ -32,6 +32,9 @@ CREATE TABLE merchant_rule (
 insertMessage:
 INSERT OR IGNORE INTO message(hash, sender, body, received_at) VALUES (?, ?, ?, ?);
 
+allMessages:
+SELECT sender, body, received_at FROM message ORDER BY received_at;
+
 unparsed:
 SELECT * FROM message WHERE parsed = 0 ORDER BY received_at;
 

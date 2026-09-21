@@ -23,4 +23,12 @@
     <string name="received">الوارد</string>
     <string name="pick_category">تصنيف %1$s</string>
     <string name="empty">لا عمليات بعد. استورد الرسائل السابقة أو انتظر رسالة البنك التالية.</string>
+    <string name="backup_title">النسخ الاحتياطي</string>
+    <string name="backup_help">ملف مشفّر يحوي رسائلك الأصلية وتصحيحاتك. احتفظ به أينما شئت؛ لا يفتحه إلا هذه العبارة السرية.</string>
+    <string name="passphrase">العبارة السرية</string>
+    <string name="export">تصدير</string>
+    <string name="import_file">استيراد</string>
+    <string name="exported">تم التصدير</string>
+    <string name="imported_backup">تم استيراد %1$d رسالة و%2$d تصحيح</string>
+    <string name="import_failed">فشل الاستيراد: عبارة سرية خاطئة أو ملف غير صالح</string>
 </resources>
