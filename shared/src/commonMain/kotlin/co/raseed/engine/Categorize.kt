@@ -68,6 +68,9 @@ private val ARABIC_KEYWORDS: List<Pair<String, String>> = listOf(
 /** Multi-word Latin keywords, matched as phrases on the normalized merchant. */
 private val LATIN_PHRASES = listOf("gas station" to "Fuel")
 
+/** Every category the engine can emit, plus "Other" for the user's catch-all. What the correction picker shows. */
+val KNOWN_CATEGORIES: List<String> = (SEED.keys + TYPE_CATEGORY.values + "Other").distinct().sorted()
+
 // Precomputed normalized dictionary: (normalized name, category)
 private val DICT: List<Pair<String, String>> =
     SEED.flatMap { (cat, names) -> names.map { normalizeMerchant(it) to cat } }.filter { it.first.isNotEmpty() }
