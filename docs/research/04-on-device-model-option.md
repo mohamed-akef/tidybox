@@ -56,20 +56,23 @@ Two model formats matter:
   so any model-assigned category must be **visibly marked as a guess** in the UI and must
   never silently overwrite a user correction.
 
-## iOS status — the reason this is not a 2026 decision
+## iOS status
 
-MediaPipe's iOS support for this API was still **not fully public** as of the research
-date; the `flutter_gemma` project's own note is that full support arrives once Google
-opens the public iOS API, "hopefully early 2026".
+**Correction, 2026-09-22.** An earlier draft said MediaPipe's iOS LLM inference API was
+"not fully public". That was `flutter_gemma`'s status, not Google's: Google publishes the
+iOS install and Swift inference guide for the MediaPipe LLM Inference API. On the native
+stack chosen in [D5](../decisions.md#d5--kotlin-not-flutter-kotlin-multiplatform-for-the-shared-engine)
+the generative option is therefore reachable on both platforms — Android via MediaPipe /
+LiteRT-LM from Kotlin, iOS via the MediaPipe Swift API — and the *embedding* model that
+was actually chosen runs through LiteRT on Android and Core ML or LiteRT on iOS.
 
-Since iOS is already [phase 2](../decisions.md#d1--android-first-ios-is-phase-2) for
-unrelated reasons, this is not blocking — but it does mean an on-device model would be an
-**Android-only capability** for some time, and the app must therefore work correctly
-without it. Which it does, by construction: the model is a fallback inside one step.
+So iOS is not what keeps the generative option out; the cost and the "confident wrong
+answer" argument do. The app must still work with the slot empty, which it does by
+construction: the model is a fallback inside one step.
 
 ## The honest summary
 
-The technology works and is reachable from Flutter today. The reasons not to reach for it
+The technology works and is reachable from Kotlin and Swift today. The reasons not to reach for it
 are unchanged by any of the above:
 
 1. It cannot help where the information is **not in the string** (`ALDR 8821 RUH`) — it

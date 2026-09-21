@@ -42,6 +42,15 @@ home for an auditable privacy tool.
 
 **Cost accepted:** smaller reach; users must sideload or add the F-Droid repo.
 
+**Correction, 2026-09-22 — "unrestricted outside Play" was too strong.** The installer
+whitelists restricted permissions by default, so F-Droid and raw-APK installs *can* hold
+`READ_SMS` / `RECEIVE_SMS`. But from **Android 15** the platform treats them as
+hard-restricted for apps not installed by Play: the user must first open
+App info → ⋮ → *Allow restricted settings*, and only then can the grant dialog appear.
+That is onboarding friction, not a blocker — and it must be verified on real devices
+([spike S4](spike/README.md#s3)) and written into the first-run screen, not discovered
+by users.
+
 **Rejected alternative:** a Play build using `NotificationListenerService` to read bank
 *notifications* instead of SMS. Still restricted, still needs justification, and
 Android 15+ redacts notifications it classifies as OTP-bearing from untrusted listeners —

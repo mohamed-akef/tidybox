@@ -8,6 +8,14 @@ There is no API, and this is not a restriction that is loosening — it is a cor
 Apple's security model. Third-party apps have **zero** read access to the Messages
 database and cannot read, export or save a user's SMS history.
 
+**One precise exception, which does not help us (added 2026-09-22).**
+`TelephonyMessagingKit` (iOS 26.2) lets an app receive incoming SMS/MMS/RCS — but only
+in the **EU**, only when the user has set that app as the **default carrier messaging
+app** (a full Messages replacement), and only for *incoming* messages, with no access to
+history. A finance app that asked to become your Messages app would be a different
+product. It matters to the global scope only as a footnote: the claim is "no third-party
+inbox access", not "no API of any kind".
+
 The one apparent exception does not help. `ILMessageFilterExtension` (the IdentityLookup
 framework) lets an app act as a spam filter, but:
 
@@ -42,6 +50,11 @@ sender filter accepts alphanumeric bank sender IDs or only phone numbers (it may
 `READ_SMS` and `RECEIVE_SMS` are Play-**restricted** permissions. To ship on Google Play
 an app must either be the device's **default SMS handler** or win an exception via the
 Restricted Permission Declaration Form.
+
+Outside Play they are *grantable* but, from **Android 15**, gated: the platform marks
+them hard-restricted for apps not installed by Play, and the user must enable
+*Allow restricted settings* on the app's info page before the permission dialog can be
+shown. Verified on paper only — [spike S4](../spike/README.md#s3) tests it on devices.
 
 Play policy explicitly addresses budgeting apps and SMS history, many non-default-handler
 finance apps have been refused, and Google has taken enforcement action at scale against

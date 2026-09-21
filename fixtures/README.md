@@ -27,15 +27,27 @@ purchases:
 ## How to redact
 
 **Do:**
-- Replace card and account digits with `****` — keep the *shape* (`**1234` → `**####`)
+- Replace card and account digits with **other digits**, same length (`**1234` → `**7381`).
+  Not `####` — templates match digits, and a placeholder that is not a digit makes the
+  message fail extraction for the wrong reason.
 - Replace personal names with a placeholder like `SYNTHETIC MERCHANT` or `اسم تجريبي`
-- Replace IBANs and phone numbers
+- Replace IBANs and phone numbers with same-shape synthetic values
 
-**Keep — these carry no personal risk and the parser needs them:**
-- Amounts and currencies (or scramble the digits, but keep the format `1,234.56`)
-- Dates and times, in the exact original format
-- Merchant names — **these are the point of the exercise**
-- The exact Arabic wording, spacing and line breaks
+**Keep the format, change the values if you want:**
+- Amounts: scramble the digits, keep the format (`1,234.56` stays `d,ddd.dd`)
+- Dates and times: shift them, keep the exact original format
+- The exact Arabic wording, spacing and line breaks — never retype these
+
+**Merchant names are the point of the exercise — and they are your spending history.**
+A merchant plus a date under your GitHub name says where you were and what you bought.
+Card masking does not change that. So:
+- keep the merchant if you are comfortable with that being public;
+- otherwise **swap it for a different real chain of the same kind**, in the same
+  format the bank printed it (`PANDA 1234 RIYADH` → `DANUBE 5510 RIYADH`). The parser
+  and the categorizer need the *shape* and the *kind*, not your actual shop;
+- or send the messages privately to a maintainer, who redacts and commits them.
+
+Review your set once more for merchants before opening the PR. It is a public record.
 
 > ⚠️ **Copy the text exactly, don't retype it.** Bank SMS contain invisible bidirectional
 > control marks (U+200E / U+200F / U+061C) sitting inside amounts and account numbers.
