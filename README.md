@@ -12,7 +12,9 @@ Your financial history never leaves your phone, because there is nowhere for it 
 
 ## Status: design phase — nothing is implemented yet
 
-This repository holds research, a design, and one measurement. No app code exists yet.
+Research, a design, one measurement, and the first code: the parsing engine (`shared/`)
+with the 174-message corpus as its test suite, and an Android app skeleton that captures
+allowlisted bank SMS and lists transactions. Not yet run on a device.
 The design's central assumption — rules and user corrections, no model — has been
 [measured on 174 real messages](docs/spike/RESULT.md): extraction 104/104, categorization
 72% correct / **0% wrong** / 28% abstain on held-out merchants, and an embedding model
@@ -63,14 +65,18 @@ that rather than asserted it: [the spike](docs/spike/RESULT.md). The full argume
 
 Details and sources: [docs/research/01](docs/research/01-platform-constraints.md).
 
-## Planned layout
+## Layout
 
 ```
-shared/        Kotlin Multiplatform — parse + categorize. No I/O.
-androidApp/    SMS receiver, SQLCipher store, Compose UI
+shared/        Kotlin Multiplatform — normalize, extract, categorize. No I/O.
+androidApp/    SMS receiver, WorkManager parse, SQLDelight store, Compose inbox
 iosApp/        later — same shared/, different ingestion
-rulepacks/     bank templates, merchant dictionary, category vectors, signing
-fixtures/      redacted real SMS — the test corpus
+rulepacks/     later — bank templates and merchant dictionary as signed JSON (Kotlin constants today)
+fixtures/      corpus.jsonl — 174 labeled real messages, asserted row-by-row in CI
+spike/         the throwaway measurement (docs/spike/RESULT.md)
+
+Build: JDK 17, `./gradlew :shared:jvmTest` for the engine, `./gradlew :androidApp:assembleDebug`
+for the APK (needs an Android SDK; `local.properties` → `sdk.dir`).
 ```
 
 ## Documents
