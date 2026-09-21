@@ -129,7 +129,7 @@ seen — `BURGER BOUTIQUE AL KHOBAR` → Food. A model's world knowledge helps t
 a dictionary miss is otherwise a user tap.
 
 So the design keeps the categorizer a **pluggable slot**
-([D4](../decisions.md#d4--rules-and-user-corrections-no-llm)). If the spike shows the
+([D4](../decisions.md#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm)). If the spike shows the
 unknown-merchant tail is larger than expected, a small on-device model can fill that one
 step later without touching extraction, storage or UI. The door stays open. We just are
 not building the foundation on it.

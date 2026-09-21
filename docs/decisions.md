@@ -2,7 +2,7 @@
 
 ## Decided
 
-These were settled explicitly on 2026-09-16, each after the alternatives were laid out.
+D1–D4 were settled on 2026-09-16; D5–D7 on 2026-09-22, after review of the first draft.
 
 ### D1 — Android first; iOS is phase 2
 
@@ -13,6 +13,13 @@ and an onboarding burden, so it does not belong in v1.
 
 **Consequence:** the engine is designed platform-free so iOS later is a new *adapter*,
 not a rewrite.
+
+**iOS ingestion path — deferred (2026-09-22).** Every iOS "SMS tracker" uses one of four
+side doors, none of which reads the inbox: (1) a user-installed Shortcuts automation
+feeding an App Intent, (2) open-banking aggregation, (3) Apple Wallet (Apple Pay only),
+(4) statement/CSV import. Which door we take is decided when iOS starts, not now. The
+likely one is (1): ship a `.shortcut` the user installs in one tap, app exposes one
+`ingest(text)` intent, same engine.
 
 ### D2 — Distribute via F-Droid and GitHub APK, not Google Play
 
@@ -52,19 +59,57 @@ over the network would be a real attack surface in an app whose entire pitch is 
 **Boundary:** download only. No request body, no identifier, no telemetry, no upload of
 any kind — and the whole mechanism can be disabled, falling back to the bundled pack.
 
-### D4 — Rules and user corrections; no LLM
+### D4 — Rules for extraction; rules + user corrections + a small embedding model for categorization; no LLM
 
-**Why:** extraction needs no intelligence (bank SMS are labeled forms), and for
-categorization a small model mostly turns *"unknown"* into a confident wrong answer.
-Full argument and evidence: [research 03](research/03-categorization-without-an-llm.md).
+**Extraction:** no model, anywhere. Bank SMS are labeled forms in every country. Regex
+templates per bank, contributed as signed rule packs.
 
-**Hedge, deliberately kept:** the categorizer is a **pluggable slot**. If measurement
-shows the unknown-merchant tail is larger than expected, a small on-device model can
-fill that one step later without touching the rest of the engine. The door is left
-open on purpose; we just aren't building on it. What that model would concretely be —
-runtime, size, cost, iOS status — is worked out in
-[research 04](research/04-on-device-model-option.md), so the option is real rather than
-rhetorical.
+**Categorization** (revised 2026-09-22, after [D6](#d6--global-not-saudi-only) made a
+pre-seeded merchant dictionary impossible): strict priority —
+user override → exact dictionary → keyword rules → **embedding nearest-neighbour** →
+`Uncategorized`. The model is a small multilingual **sentence-embedding** model
+(MiniLM class, tens of MB), not a generative LLM. It embeds the merchant string and
+compares it to category vectors; below a similarity threshold it answers *Uncategorized*
+rather than guessing. That keeps the two properties the original D4 was protecting:
+deterministic, and "I don't know" instead of a confident wrong answer.
+
+**What updates, and where:** the embedding model ships inside the app binary and changes
+rarely. The dictionary, keyword rules and category vectors live in the signed rule pack
+([D3](#d3--signed-download-only-rule-packs)) and update every release.
+
+**Not chosen:** a generative on-device LLM (Gemma-class). Costed in
+[research 04](research/04-on-device-model-option.md). It reopens only if the spike shows
+the embedding classifier fails on real messages.
+
+### D5 — Kotlin, not Flutter; Kotlin Multiplatform for the shared engine
+
+**Why:** SMS capture is Android-native — a `BroadcastReceiver`, not a platform channel.
+On-device ML is native on both sides (LiteRT on Android, Core ML on iOS). PennyWiseAI, the
+closest prior art, is already KMP with the parser in `commonMain`. Performance is *not*
+the reason — regex over 200 bytes is microseconds in any language.
+
+**Shape:** `shared/` = engine + classifier (`commonMain`, no I/O). `androidApp/` = SMS
+receiver + Compose UI. `iosApp/` later, same `shared/`.
+
+**Cost accepted:** two UIs eventually (Compose on Android, SwiftUI or Compose
+Multiplatform on iOS), instead of Flutter's one. Acceptable because the iOS product is a
+different ingestion story anyway ([D1](#d1--android-first-ios-is-phase-2)).
+
+### D6 — Global, not Saudi-only
+
+**Why:** the parsing approach is the same everywhere; the only country-specific parts are
+bank templates and the merchant dictionary, and both already live in the rule pack.
+Saudi banks remain the first fixtures because that is where the real messages are.
+
+**Consequence:** no pre-seeded merchant dictionary can cover 50 countries, which is what
+forced the embedding step into [D4](#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm).
+The rule-pack contribution flywheel is the product, not a nice-to-have.
+
+### D7 — Privacy is the product
+
+Everything in [D4](#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm)
+runs on the device. No server, no account, no sync, no telemetry; the only network call
+is a signed download. This is the constraint every other decision is checked against.
 
 ---
 
@@ -81,11 +126,12 @@ rhetorical.
 
 ## The assumption still unproven
 
-**D4 rests on a coverage number nobody has measured on real Saudi messages.** The one
+**D4 rests on a coverage number nobody has measured on real messages.** The one
 figure circulating in prior art — Mizan's "~79%" — turns out to be
 [too ambiguously worded to inherit](research/02-prior-art.md#mizan-kioo20082008-specmizan),
 and the ~95% casually claimed for rule-based parsing is unsourced. There is simply no
 trustworthy baseline, in either direction.
 
 This is why [the spike](spike/README.md) exists and why the design below is marked
-draft. If measured auto-categorization comes back weak, D4 is the decision that changes.
+draft. If measured auto-categorization comes back weak even with the embedding step, D4
+is the decision that changes — the generative-LLM option in research 04 reopens.

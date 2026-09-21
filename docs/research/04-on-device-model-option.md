@@ -1,10 +1,16 @@
 # Research: the on-device model option, if we ever need it
 
 Researched 2026-09-16. This document exists so that
-[D4](../decisions.md#d4--rules-and-user-corrections-no-llm)'s hedge is a **real, costed
+[D4](../decisions.md#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm)'s hedge is a **real, costed
 option** rather than a polite gesture. If [the spike](../spike/README.md) shows the
 unknown-merchant tail is bigger than expected, this is what filling the pluggable slot
 would actually involve.
+
+> **Decision, 2026-09-22.** The slot is now filled — but with a small **sentence-embedding**
+> model doing nearest-neighbour over category vectors, not a generative Gemma-class LLM.
+> See [D4](../decisions.md#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm).
+> This document stays as the costing of the generative option, which reopens only if the
+> spike shows the embedding classifier failing.
 
 It is **not** a plan to build this. Read [research 03](03-categorization-without-an-llm.md)
 first for why rules come first.

@@ -5,7 +5,7 @@ repository: every parser template is guesswork until it runs against real messag
 
 ## We need 30–50 messages to start
 
-Across whichever Saudi banks you actually use, in **both Arabic and English** — the same
+Across whichever banks you actually use (any country; Saudi first because that is where the samples are), in **both Arabic and English** — the same
 bank sends either depending on the customer's language setting, and the formats differ.
 
 ### Please make sure the set includes

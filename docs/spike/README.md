@@ -10,10 +10,10 @@ as such. **Cost:** about a day.
 
 ## Why this exists
 
-The design rests on [D4](../decisions.md#d4--rules-and-user-corrections-no-llm) — rules
+The design rests on [D4](../decisions.md#d4--rules-for-extraction-rules--user-corrections--a-small-embedding-model-for-categorization-no-llm) — rules
 and user corrections, no model. The argument for it is
 [strong and evidence-backed](../research/03-categorization-without-an-llm.md), but its
-coverage is **unmeasured on real Saudi messages**, and the one figure circulating in prior
+coverage is **unmeasured on real messages**, and the one figure circulating in prior
 art — Mizan's "~79%" — is
 [too ambiguously worded to inherit](../research/02-prior-art.md#mizan-kioo20082008-specmizan).
 
@@ -26,7 +26,7 @@ gap between an app you trust and one you abandon.
 | Metric | Definition | Rough bar |
 |---|---|---|
 | **M1 — Extraction rate** | % of transaction messages where amount, date, card and merchant are all extracted correctly | Should be very high (>95%). The messages are labeled forms; if this is low, something is wrong with the approach, not the data. |
-| **M2 — Auto-categorization rate** | % of extracted transactions given a *correct* category with **no** user input, using only the seed dictionary | The decisive number. High → D4 confirmed. Low → the model question genuinely reopens. |
+| **M2 — Auto-categorization rate** | % of extracted transactions given a *correct* category with **no** user input, using the seed dictionary alone, and again with the embedding step | The decisive number. High → D4 confirmed. Low even with embeddings → the generative-LLM question reopens. |
 | **M3 — Residual tap rate** | % needing one user tap, and how fast that curve decays as corrections accumulate | Determines whether "it teaches itself in two weeks" is true or wishful. |
 
 Two correctness checks run alongside, because they are the quiet killers:
@@ -37,12 +37,16 @@ Two correctness checks run alongside, because they are the quiet killers:
 ## Method
 
 1. Collect 30–50 redacted real SMS — see [fixtures/](../../fixtures/README.md).
-2. Write a throwaway parser (Dart or Python, whichever is faster to iterate) using the
-   real formats already documented in [prior art](../research/02-prior-art.md).
-3. Write a Saudi seed dictionary — a few hundred merchants across supermarkets, delivery,
-   telcos, petrol, pharmacies, SADAD billers.
+2. Write a throwaway parser in Python using the real formats already documented in
+   [prior art](../research/02-prior-art.md).
+3. Write a seed dictionary for the banks in the corpus (Saudi first — a few hundred
+   merchants across supermarkets, delivery, telcos, petrol, pharmacies, SADAD billers)
+   **and** the embedding fallback: a multilingual MiniLM-class model, category vectors,
+   one similarity threshold. Report M2 both with and without the embedding step, so the
+   model's contribution is a number rather than an assumption.
 4. Run it. Hand-label the truth. Report M1, M2, M3.
-5. Recommend: proceed as designed / expand the dictionary / reopen the model question.
+5. Recommend: proceed as designed / expand the dictionary / reopen the generative-LLM
+   question (research 04).
 
 ## How to read the result
 
