@@ -32,8 +32,6 @@ object Senders {
     fun set(context: Context, senders: Set<String>) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY, senders).commit()
     }
-    fun allows(context: Context, sender: String?): Boolean = allows(get(context), sender)
-
     /** The one matching rule. Everything that can persist a message routes through here. */
     fun allows(allowed: Set<String>, sender: String?): Boolean =
         sender != null && allowed.any { it.equals(sender.trim(), ignoreCase = true) }
