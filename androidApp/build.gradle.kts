@@ -12,8 +12,8 @@ android {
         applicationId = "app.tidybox"
         minSdk = 26
         targetSdk = 37
-        versionCode = 7
-        versionName = "0.1.6"
+        versionCode = 8
+        versionName = "0.1.7"
     }
     buildFeatures { compose = true }
     compileOptions {
@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":shared"))
     implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.core:core-ktx:1.19.0")
