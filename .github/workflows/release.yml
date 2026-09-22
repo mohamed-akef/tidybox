@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write # to dispatch fdroid-repo below
     # Job level, not step level: a step's own `env:` block is NOT in the `env` context when that
     # step's `if:` is evaluated, and `secrets` is not available in a step `if:` at all. Declaring
     # this inside the signing step made its condition permanently false, so signing never ran and
@@ -75,3 +76,10 @@ jobs:
             androidApp/build/outputs/apk/release/tidybox-*.apk
             androidApp/build/outputs/apk/release/SHA256SUMS
           generate_release_notes: true
+      # A release created with GITHUB_TOKEN does not emit `release: published` to other workflows
+      # (GitHub suppresses token-caused events to stop loops), so fdroid-repo never fired on its
+      # own — v0.1.2 needed a manual dispatch. Chain it explicitly instead.
+      - name: publish the F-Droid repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run fdroid-repo.yml --ref main
