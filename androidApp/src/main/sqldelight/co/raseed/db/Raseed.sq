@@ -44,6 +44,10 @@ SELECT * FROM message WHERE parsed = 0 ORDER BY received_at;
 markParsed:
 UPDATE message SET parsed = 1 WHERE id = ?;
 
+-- O4: the user chose not to keep raw text. Hash stays so replay detection still works.
+blankBodies:
+UPDATE message SET body = '' WHERE parsed = 1 AND body != '';
+
 insertTx:
 INSERT OR IGNORE INTO tx(message_id, type, amount, currency, merchant, merchant_key, card_last4, occurred_at, category, category_reason)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);

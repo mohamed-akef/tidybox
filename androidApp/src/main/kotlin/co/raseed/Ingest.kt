@@ -52,6 +52,18 @@ object RulePacks {
     fun reset(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY).commit()
 }
 
+/** O4. Default keep: enables re-parse after a rule-pack update, "why this category", and backup. */
+object KeepRaw {
+    private const val PREFS = "raseed-privacy"
+    private const val KEY = "keep_raw"
+    fun get(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY, true)
+    /** Turning it off erases what is already stored; turning it back on cannot bring it back. */
+    fun set(context: Context, keep: Boolean, db: RaseedDb) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY, keep).commit()
+        if (!keep) db.raseedQueries.blankBodies()
+    }
+}
+
 object Db {
     @Volatile private var instance: RaseedDb? = null
     fun get(context: Context): RaseedDb = instance ?: synchronized(this) {
@@ -106,10 +118,13 @@ fun recategorizeAll(db: RaseedDb, pack: RulePack) {
 /**
  * Parse everything stored but not yet parsed. Pure engine in, rows out. Safe to run any time.
  *
- * `pack` is deliberately not defaulted: a default is right at two call sites and silently wrong at
- * the third, and the compiler is the only thing that reliably notices.
+ * Neither parameter is defaulted, on purpose. Both defaults were right at two call sites and
+ * silently wrong at the third: `pack` made a restore categorize with the bundled dictionary, and
+ * `keepRaw = true` made a restore re-populate raw message bodies the user had chosen to erase —
+ * reversing a privacy setting with no error and no UI. The compiler is the only thing that
+ * reliably notices the next call site.
  */
-fun parsePending(db: RaseedDb, pack: RulePack) {
+fun parsePending(db: RaseedDb, pack: RulePack, keepRaw: Boolean) {
     val overrides = db.raseedQueries.rules().executeAsList().associate { it.merchant_key to it.category }
     for (m in db.raseedQueries.unparsed().executeAsList()) {
         when (val r = extract(m.body)) {
@@ -126,4 +141,7 @@ fun parsePending(db: RaseedDb, pack: RulePack) {
         }
         db.raseedQueries.markParsed(m.id)
     }
+    // Runs on every parse, not just when the switch flips: a message that arrived while the app
+    // was closed must not keep its body either. `body != ''` in the query makes the repeat a no-op.
+    if (!keepRaw) db.raseedQueries.blankBodies()
 }

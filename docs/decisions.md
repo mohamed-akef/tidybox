@@ -131,7 +131,7 @@ is a signed download. This is the constraint every other decision is checked aga
 | O2 | **License.** GPLv3 / AGPLv3 / MIT / Apache-2.0. Affects whether a closed fork is possible. | None chosen. Deliberately left to the owner — this is a legal choice, not a technical one. |
 | O3 | **Repo visibility.** Currently **private**. | Stays private until the design is settled. Private→public is one click; the reverse is not. |
 | O5 | **Rule-pack download.** D3 is half built: packs are JSON, bundled, and loadable from a file — but the app has no `INTERNET` permission and CI enforces that. Adding the GitHub Releases download means adding `INTERNET` and the Ed25519 check. Alternative: keep zero network forever and ship packs only with app releases + manual file import. | Ship packs with releases; decide on download when there is a pack worth downloading. |
-| O4 | **Discard raw SMS after parsing?** Keeping the raw text lets a rule-pack update re-derive old transactions and lets the UI explain *why* something was categorized. Deleting it is stronger privacy. | Keep, encrypted, with a user-facing setting to discard. |
+| O4 | **Discard raw SMS after parsing?** Keeping the raw text lets a rule-pack update re-derive old transactions and lets the UI explain *why* something was categorized. Deleting it is stronger privacy. | Keep, encrypted, with a user-facing setting to discard. **Built:** Settings → Privacy → *Keep raw messages* (default on); off erases stored text immediately and after every parse. |
 
 ---
 

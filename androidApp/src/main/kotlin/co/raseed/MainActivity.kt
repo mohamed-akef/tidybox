@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -190,7 +191,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
                 withContext(Dispatchers.IO) {
                     val blob = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
                     val pw = passphrase.toCharArray()
-                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), RulePacks.current(ctx), blob, pw) } finally { pw.fill('\u0000') }
+                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), RulePacks.current(ctx), KeepRaw.get(ctx), blob, pw) } finally { pw.fill('\u0000') }
                 }
             }.map { (m, r) -> ctx.getString(R.string.imported_backup, m, r) }.getOrElse { ctx.getString(R.string.import_failed) }
             onReload()
@@ -210,8 +211,19 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             onReload()
         }
     }
+    var keepRaw by remember { mutableStateOf(KeepRaw.get(ctx)) }
     Column(modifier) {
-        Text(stringResource(R.string.rulepack_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.privacy_title), style = MaterialTheme.typography.titleMedium)
+        Row(Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.keep_raw), Modifier.weight(1f).padding(top = 12.dp))
+            Switch(checked = keepRaw, onCheckedChange = { on ->
+                keepRaw = on
+                scope.launch { withContext(Dispatchers.IO) { KeepRaw.set(ctx, on, Db.get(ctx)) } }
+            })
+        }
+        Text(stringResource(R.string.keep_raw_help), style = MaterialTheme.typography.bodySmall)
+
+        Text(stringResource(R.string.rulepack_title), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.rulepack_help), style = MaterialTheme.typography.bodySmall)
         Text(stringResource(R.string.rulepack_current, pack.name, pack.version), style = MaterialTheme.typography.bodySmall)
         Row {
@@ -228,10 +240,12 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         OutlinedTextField(passphrase, { passphrase = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.passphrase)) }, singleLine = true,
             visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
         Row {
-            TextButton(enabled = passphrase.length >= 8, onClick = { exportTo.launch("raseed-backup.rsd") }) { Text(stringResource(R.string.export)) }
+            // Export is only meaningful while raw bodies exist — see Export.kt.
+            TextButton(enabled = passphrase.length >= 8 && keepRaw, onClick = { exportTo.launch("raseed-backup.rsd") }) { Text(stringResource(R.string.export)) }
             TextButton(enabled = passphrase.length >= 8, onClick = { importFrom.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.import_file)) }
             Text(backupStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
+        if (!keepRaw) Text(stringResource(R.string.backup_needs_raw), style = MaterialTheme.typography.bodySmall)
 
         Text(stringResource(R.string.import_history), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
         Row {
