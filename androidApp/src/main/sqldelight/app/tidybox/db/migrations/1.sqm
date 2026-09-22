@@ -1,0 +1,2 @@
+-- v1 → v2: a transaction the user removed stays stored (so re-import does not resurrect it) but hidden.
+ALTER TABLE tx ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0;
