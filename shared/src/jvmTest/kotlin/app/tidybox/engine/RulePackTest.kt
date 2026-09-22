@@ -96,3 +96,17 @@ class CibDeclineTest {
         )) assertEquals(EngineResult.Rejected(Rejection.DECLINED), extract(text))
     }
 }
+
+class IncomeShapesTest {
+    @Test
+    fun cibSalaryIsIncome() {
+        val tx = (extract("عميلنا العزيز لقد تم تحويل مبلغ EGP125,400.00 على حسابكم لدينا من جهة العمل") as EngineResult.Parsed).tx
+        assertEquals(TxType.SALARY to 125400.0, tx.type to tx.amount)
+    }
+
+    @Test
+    fun kfhReturnedTransferIsMoneyIn() {
+        val tx = (extract("IPN Transfer dated 18/09 13:40 with EGP 2500.00 returned with Ref# 0a813d27. For info call 19319") as EngineResult.Parsed).tx
+        assertEquals(TxType.TRANSFER_IN to 2500.0, tx.type to tx.amount)
+    }
+}
