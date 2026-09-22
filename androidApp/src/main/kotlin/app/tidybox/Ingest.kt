@@ -166,7 +166,7 @@ fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
     var found = 0
     val overrides = db.tidyBoxQueries.rules().executeAsList().associate { it.merchant_key to it.category }
     for (m in db.tidyBoxQueries.unparsed().executeAsList()) {
-        when (val r = extract(m.body)) {
+        when (val r = extract(m.body, pack)) {
             is EngineResult.Parsed -> {
                 val tx = r.tx
                 val c = categorize(tx, overrides, pack)

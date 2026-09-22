@@ -270,5 +270,300 @@
         "طيران"
       ]
     }
+  },
+  "templates": {
+    "currency": "(?:SAR|SR|USD|AED|MKD|EUR|GBP|EGP|KWD|QAR|BHD|OMR|JOD|INR|TRY|L\\.?E\\.?|ريال سعودي|ريال|جنيه مصري|جنيه|جم)",
+    "number": "(\\d[\\d,]*(?:\\.\\d+)?|\\.\\d+)",
+    "defaultCurrency": "SAR",
+    "currencyAliases": {
+      "SR": "SAR",
+      "ريال": "SAR",
+      "ريال سعودي": "SAR",
+      "جم": "EGP",
+      "جنيه": "EGP",
+      "جنيه مصري": "EGP",
+      "LE": "EGP",
+      "L.E": "EGP",
+      "L.E.": "EGP"
+    },
+    "greeting": "^(هلا|عميلنا العزيز|عزيزي|عزيزنا)",
+    "types": [
+      {
+        "re": "مرفوض|لا يكفي|لم يتم تنفيذ|عدم وجود رصيد",
+        "reject": "DECLINED",
+        "scope": "whole"
+      },
+      {
+        "re": "رمز|كلمة مرور|التفعيل|التحقق|الرقم السري",
+        "reject": "OTP",
+        "scope": "whole"
+      },
+      {
+        "re": "^تفويض",
+        "reject": "AUTH_HOLD"
+      },
+      {
+        "re": "استرداد|عكسية|استرجاع",
+        "type": "REFUND"
+      },
+      {
+        "re": "راتب",
+        "type": "SALARY"
+      },
+      {
+        "re": "سحب",
+        "type": "ATM_OUT"
+      },
+      {
+        "re": "سداد فاتورة|مدفوعات سوا",
+        "type": "BILL"
+      },
+      {
+        "re": "مدفوعات وزارة|الجهة:",
+        "type": "GOV"
+      },
+      {
+        "re": "تنفيذ عملية شراء شركة|سهم",
+        "type": "INVESTMENT",
+        "scope": "whole"
+      },
+      {
+        "re": "حوالة بين حساباتك",
+        "type": "TRANSFER_SELF"
+      },
+      {
+        "re": "حوالة.*(وارد|واردة)|وارد.*حوالة|استلام حوالة",
+        "type": "TRANSFER_IN"
+      },
+      {
+        "re": "حوالة.*(صادر|صادرة)",
+        "type": "TRANSFER_OUT"
+      },
+      {
+        "re": "حوالة",
+        "type": "TRANSFER_BY_SENDER"
+      },
+      {
+        "re": "تم (?:إضافة|اضافة) تحويل",
+        "type": "TRANSFER_IN"
+      },
+      {
+        "re": "ايداع|إيداع|قيد مبلغ|تم (?:إضافة|اضافة)",
+        "type": "DEPOSIT"
+      },
+      {
+        "re": "تم خصم",
+        "type": "PURCHASE"
+      },
+      {
+        "re": "شراء|مشتريات|خصم من التفويض|عملية شراء",
+        "type": "PURCHASE"
+      },
+      {
+        "re": "declined|insufficient|unsuccessful|could not be (?:processed|completed)|has failed",
+        "reject": "DECLINED",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "\\bOTP\\b|one[- ]time (?:password|code)|verification code|passcode|security code",
+        "reject": "OTP",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "cashback|discount|% ?off|\\boffer\\b|terms and conditions|\\benjoy\\b|promo",
+        "reject": "NO_TEMPLATE",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "refund|revers(?:ed|al)",
+        "type": "REFUND",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "salary|payroll",
+        "type": "SALARY",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "\\bATM\\b|cash withdrawal|withdrawn",
+        "type": "ATM_OUT",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "bill payment|paid (?:your|the) bill|recharged?\\b|top[- ]?up",
+        "type": "BILL",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "received .{0,40}from|credited .{0,40}(?:from|by)|incoming transfer|transfer .{0,30}(?:received|credited)",
+        "type": "TRANSFER_IN",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "(?:sent|transferred) .{0,40}\\bto\\b|outgoing transfer",
+        "type": "TRANSFER_OUT",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "deposit|credited",
+        "type": "DEPOSIT",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "was charged|charged for|purchase|debited|\\bspent\\b|\\bpaid\\b|(?:was|has been) used",
+        "type": "PURCHASE",
+        "scope": "whole",
+        "flags": "i"
+      }
+    ],
+    "transferNamedSender": "^من\\s*:\\s*\\S",
+    "transferNumericSender": "^من\\s*:?\\s*\\d{4}$",
+    "amount": [
+      {
+        "re": "(?:المبلغ|مبلغ|بمبلغ|بقيمة)\\s*:?\\s*({CUR})\\s*{NUM}",
+        "currencyFirst": true
+      },
+      {
+        "re": "(?:المبلغ|مبلغ|بمبلغ|بقيمة)\\s*:?\\s*{NUM}\\s*({CUR})",
+        "currencyFirst": false
+      },
+      {
+        "re": "(?<!\\S)بـ?\\s*({CUR})\\s*{NUM}",
+        "currencyFirst": true
+      },
+      {
+        "re": "(?<!\\S)بـ?\\s*{NUM}\\s*({CUR})",
+        "currencyFirst": false
+      },
+      {
+        "re": "(?:شراء انترنت|شراء إنترنت|شراء)\\s+{NUM}\\s*({CUR})",
+        "currencyFirst": false
+      },
+      {
+        "re": "بسعر\\s*{NUM}\\s*({CUR})",
+        "currencyFirst": false
+      },
+      {
+        "re": "(?:اضافة|إضافة)\\s+{NUM}\\s*({CUR})",
+        "currencyFirst": false
+      },
+      {
+        "re": "خصم\\s+{NUM}\\s*({CUR})",
+        "currencyFirst": false
+      },
+      {
+        "re": "\\b({CUR})\\s*{NUM}",
+        "currencyFirst": true,
+        "flags": "i"
+      },
+      {
+        "re": "{NUM}\\s*({CUR})\\b",
+        "currencyFirst": false,
+        "flags": "i"
+      },
+      {
+        "re": "(?:المبلغ|مبلغ|بمبلغ)\\s*:?\\s*{NUM}(?!\\S)",
+        "currencyFirst": false
+      }
+    ],
+    "settled": "(?:اجمالي|إجمالي) المبلغ المستحق\\s*:?\\s*{NUM}\\s*({CUR})",
+    "merchantTypes": [
+      "PURCHASE",
+      "REFUND",
+      "ATM_OUT",
+      "BILL",
+      "GOV"
+    ],
+    "merchant": [
+      {
+        "re": "^لدي\\s*:?\\s*(.+)$"
+      },
+      {
+        "re": "^من البائع\\s*:?\\s*(.+)$"
+      },
+      {
+        "re": "^الخدمة\\s*:?\\s*(.+)$"
+      },
+      {
+        "re": "^الجهة\\s*:?\\s*(.+)$"
+      },
+      {
+        "re": "^مكان السحب\\s*:?\\s*(.+)$"
+      },
+      {
+        "re": "^لـ(.+)$"
+      },
+      {
+        "re": "^من\\s*:?\\s*(.+)$"
+      },
+      {
+        "re": "\\bat\\s+(.+?)\\s+on\\s+\\d",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "\\bfrom\\s+(.+?)\\s+with\\s+{CUR}",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "\\bat\\s+(.+?)[.,]?$",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "عند\\s*(.+?)\\s+يوم",
+        "scope": "whole"
+      }
+    ],
+    "notMerchant": "^[\\s:]*(?:[\\d*x#]+|حساب.*|البائع.*)$",
+    "card": [
+      {
+        "re": "(?:بطاقة|البطاقة|عبر|ببطاقة مدي|بطاقة مدي|لبطاقة مدي)[^\\d\\n]*?(\\d{4})"
+      },
+      {
+        "re": "(?:card|account)(?: ending)?(?: with| in)?\\s*#?\\s*(\\d{4})",
+        "flags": "i"
+      },
+      {
+        "re": "رقم\\s*(\\d{4})"
+      }
+    ],
+    "dates": [
+      {
+        "re": "(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})[ T]+(\\d{1,2}):(\\d{2})",
+        "order": "YMDhm"
+      },
+      {
+        "re": "(\\d{1,2}):(\\d{2})\\s+(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})",
+        "order": "hmYMD"
+      },
+      {
+        "re": "(\\d{1,2}):(\\d{2})\\s+(\\d{2})[-/](\\d{1,2})[-/](\\d{1,2})",
+        "order": "hmyMD"
+      },
+      {
+        "re": "(\\d{2})[-/\\\\](\\d{1,2})[-/\\\\](\\d{1,2})\\s+(\\d{1,2}):(\\d{2})",
+        "order": "yMDhm"
+      },
+      {
+        "re": "(\\d{1,2})/(\\d{1,2})/(\\d{2})\\s*الساعة\\s*(\\d{1,2}):(\\d{2})",
+        "order": "DMyhm"
+      },
+      {
+        "re": "(\\d{1,2})[-/\\\\](\\d{1,2})[-/\\\\](\\d{2})\\s+(?:at\\s+)?(\\d{1,2}):(\\d{2})",
+        "order": "DMyhm"
+      }
+    ]
   }
 }

@@ -49,3 +49,30 @@ class RulePackTest {
         assertFailsWith<IllegalArgumentException> { RulePack.parse("""{"version":1,"name":"t","categories":[],"merchants":{"Food":["x"]},"keywords":{}}""") }
     }
 }
+
+class TemplatesTest {
+    private val base = """"version":2,"name":"t","categories":["Food"],"merchants":{},"keywords":{}"""
+
+    @Test
+    fun aPackWithoutTemplatesUsesTheBundledOnes() {
+        val custom = RulePack.parse("{$base}")
+        assertEquals(extract("شراء\nمبلغ:SAR 5.00\nلدى:BK"), extract("شراء\nمبلغ:SAR 5.00\nلدى:BK", custom))
+    }
+
+    @Test
+    fun aPacksTemplatesTeachANewBankWithoutARelease() {
+        val custom = RulePack.parse("""{$base,"templates":{"currency":"(?:XYZ)","number":"(\\d+)",
+            "types":[{"re":"spent","type":"PURCHASE","scope":"whole"}],
+            "amount":[{"re":"{NUM} ({CUR})"}],"merchantTypes":["PURCHASE"],
+            "merchant":[{"re":"at (.+)$","scope":"whole"}]}}""")
+        val tx = (extract("spent 42 XYZ at CORNER SHOP", custom) as EngineResult.Parsed).tx
+        assertEquals(Transaction(TxType.PURCHASE, 42.0, "XYZ", "CORNER SHOP", null, null, null), tx)
+        assertTrue(extract("spent 42 XYZ at CORNER SHOP") is EngineResult.Rejected) // bundled does not know it
+    }
+
+    @Test
+    fun aBadTemplateFailsAtLoadNotAtParse() {
+        assertFailsWith<IllegalArgumentException> { RulePack.parse("""{$base,"templates":{"currency":"x","number":"x","types":[{"re":"(","type":"PURCHASE"}],"amount":[]}}""") }
+        assertFailsWith<IllegalArgumentException> { RulePack.parse("""{$base,"templates":{"currency":"x","number":"x","types":[{"re":"a","type":"NOPE"}],"amount":[]}}""") }
+    }
+}
