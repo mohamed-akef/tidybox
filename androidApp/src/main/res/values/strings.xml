@@ -6,7 +6,7 @@
     <string name="android15_note">On Android 15 and newer, an app installed outside Google Play must first be allowed to ask: open App info → ⋮ → Allow restricted settings, then come back here.</string>
     <string name="import_history">Import history</string>
     <string name="importing">Importing… %1$d</string>
-    <string name="imported">Imported %1$d bank messages</string>
+    <string name="imported">Imported %1$d bank messages, %2$d transactions found</string>
     <string name="range_1m">Last month</string>
     <string name="range_3m">Last 3 months</string>
     <string name="range_12m">Last year</string>
@@ -22,7 +22,7 @@
     <string name="spent">Spent</string>
     <string name="received">Received</string>
     <string name="pick_category">Category for %1$s</string>
-    <string name="empty">No transactions yet. Import history or wait for the next bank SMS.</string>
+    <string name="empty">No transactions yet. Settings → Import history, or wait for the next bank SMS.</string>
     <string name="backup_title">Backup</string>
     <string name="backup_help">An encrypted file of your raw messages and corrections. Keep it anywhere; only this passphrase opens it.</string>
     <string name="passphrase">Passphrase</string>
@@ -42,4 +42,7 @@
     <string name="keep_raw_help">On: a newer rule pack can re-read your history, and the backup file contains your messages. Off: message text is erased right after it is read, and history cannot be re-derived. Turning it off erases stored text now.</string>
     <string name="fx_excluded">%1$d row(s) in another currency are listed but not included in these totals.</string>
     <string name="backup_needs_raw">Export is off because Keep raw messages is off — there would be nothing in the file but your corrections.</string>
+    <string name="scan_senders">Scan phone for sender IDs</string>
+    <string name="scan_help">Sender IDs found on this phone (people are never listed). Tap to allow.</string>
+    <string name="scan_none">No new sender IDs found.</string>
 </resources>

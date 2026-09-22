@@ -59,6 +59,10 @@ Play Protect scanning off for the install, `adb install`, or install through a s
 repository on GitHub Pages** (`.github/workflows/fdroid-repo.yml`, built from each release), with
 the official F-Droid catalogue as a later step (draft metadata in `fdroid/app.tidybox.yml`).
 
+**S4 closed, 2026-09-22.** Installing v0.1.1 through the F-Droid client from that repo went
+through on the same device with no Play Protect prompt at all. The store path is the answer;
+the README says so and nothing else is needed.
+
 **Rejected alternative:** a Play build using `NotificationListenerService` to read bank
 *notifications* instead of SMS. Still restricted, still needs justification, and
 Android 15+ redacts notifications it classifies as OTP-bearing from untrusted listeners —
@@ -130,6 +134,28 @@ runs on the device. No server, no account, no sync, no telemetry; the only netwo
 is a signed download. This is the constraint every other decision is checked against.
 
 ---
+
+### D8 — Sender allowlist is seeded from the phone, not from a country list
+
+**Decision:** the default allowlist only ever contains sender IDs *observed on a real
+device*. Settings has a **"Scan phone for sender IDs"** button that reads the `ADDRESS`
+column of the SMS inbox — never bodies, never stored — drops anything shaped like a phone
+number (people), and lets the user tap the rest to allow them. Matching ignores case,
+spaces and dashes but is otherwise exact: `CIB` does not admit `CIB OTP`, because with
+"Keep raw messages" on that would store OTP text.
+
+**Why:** the first device outside Saudi Arabia (Egypt: `CIB`, `KFH Egypt`, `VF-Cash`)
+imported 0 messages. The seed list was written from memory, so it encoded one country.
+A global product cannot ship a bank list; it has to discover the one on the phone.
+
+**What this relaxes:** [design §2.2](specs/2026-09-16-design.md#22-identify-sender) said
+nothing outside the allowlist is ever read. Sender *metadata* now is, on an explicit tap.
+Bodies are still untouched until the ID is allowlisted.
+
+**Still open (the real global gap):** the extraction templates are Arabic Saudi shapes.
+An allowlisted English CIB message imports and then fails `NO_TEMPLATE`. Import status now
+shows `N messages, M transactions` so the two failures are distinguishable. Templates per
+bank need real bodies in `fixtures/corpus.jsonl`; the first non-Saudi rows are the next PR.
 
 ## Open decisions
 
