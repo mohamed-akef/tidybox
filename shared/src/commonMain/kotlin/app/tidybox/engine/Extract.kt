@@ -70,7 +70,8 @@ data class Templates(
     /** `scope`: `first` = first non-greeting line, `whole` = the full text. */
     @Serializable data class TypeRule(val re: String, val type: String? = null, val reject: String? = null, val scope: String = "first", val flags: String = "")
     /** `currencyFirst`: group order is (currency, number) instead of (number, currency). */
-    @Serializable data class AmountRule(val re: String, val currencyFirst: Boolean = false, val flags: String = "")
+    /** `currency`: used when the pattern has no currency group (VF-Cash writes bare numbers). */
+    @Serializable data class AmountRule(val re: String, val currencyFirst: Boolean = false, val flags: String = "", val currency: String? = null)
     /** `scope`: `line` = a whole line must match, `whole` = first find in the text. */
     @Serializable data class MerchantRule(val re: String, val scope: String = "line", val flags: String = "")
     /** `order`: one letter per capture group — Y year, y two-digit year, M, D, h, m. */
@@ -88,7 +89,10 @@ private fun opts(flags: String) = buildSet {
 
 /** Compiled once per pack. Constructing it validates every pattern and every enum name. */
 internal class Engine(private val t: Templates) {
-    private fun rx(re: String, flags: String = "") = Regex(re.replace("{CUR}", t.currency).replace("{NUM}", t.number), opts(flags))
+    // Patterns see what the text sees: normalize() folds أ/إ/آ/ٱ to ا and ى to ي, so a pattern
+    // written with the hamza form ("والأحكام") would otherwise never match anything.
+    private fun rx(re: String, flags: String = "") =
+        Regex(foldArabic(re.replace("{CUR}", t.currency).replace("{NUM}", t.number)), opts(flags))
 
     private val greeting = rx(t.greeting)
     private val types = t.types.map { r ->
@@ -100,7 +104,7 @@ internal class Engine(private val t: Templates) {
     }
     private val namedSender = rx(t.transferNamedSender, "m")
     private val numericSender = rx(t.transferNumericSender, "m")
-    private val amount = t.amount.map { rx(it.re, it.flags) to it.currencyFirst }
+    private val amount = t.amount.map { Triple(rx(it.re, it.flags), it.currencyFirst, it.currency) }
     private val settled = t.settled?.let { rx(it) }
     private val merchantTypes = t.merchantTypes.map(TxType::valueOf).toSet()
     private val merchant = t.merchant.map { r ->
@@ -156,11 +160,11 @@ internal class Engine(private val t: Templates) {
 
         var amountValue: Double? = null
         var currency: String? = null
-        for ((re, curFirst) in amount) {
+        for ((re, curFirst, fixed) in amount) {
             val m = re.find(t) ?: continue
             val g = m.groupValues.drop(1)
             val num = if (curFirst) g[1] else g[0]
-            currency = if (g.size > 1) (if (curFirst) g[0] else g[1]) else null
+            currency = if (g.size > 1) (if (curFirst) g[0] else g[1]) else fixed
             amountValue = num.replace(",", "").toDouble()
             break
         }

@@ -303,9 +303,13 @@
         "reject": "AUTH_HOLD"
       },
       {
-        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة|كسبت .{0,12}كاش باك|احمي نفسك",
+        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة|كسبت .{0,12}كاش باك|احمي نفسك|تهانينا|اعتبارا من",
         "reject": "INFORMATIONAL",
         "scope": "whole"
+      },
+      {
+        "re": "تم شحن رصيد",
+        "type": "BILL"
       },
       {
         "re": "تم تقسيط|كشف حساب|تحديث أنظمة|قناة واتساب|بحد أدنى",
@@ -451,7 +455,7 @@
         "flags": "i"
       },
       {
-        "re": "update your KYC|visit the branch|statement password",
+        "re": "update your KYC|visit the branch|statement password|^your current .{0,30}balance is",
         "reject": "INFORMATIONAL",
         "scope": "whole",
         "flags": "i"
@@ -478,6 +482,10 @@
     "transferNamedSender": "^من\\s*:\\s*\\S",
     "transferNumericSender": "^من\\s*:?\\s*\\d{4}$",
     "amount": [
+      {
+        "re": "وخصم\\s+{NUM}\\s+من محفظتك",
+        "currency": "EGP"
+      },
       {
         "re": "(?:المبلغ|مبلغ|بمبلغ|بقيمة)\\s*:?\\s*({CUR})\\s*{NUM}",
         "currencyFirst": true

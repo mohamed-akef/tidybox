@@ -68,7 +68,7 @@ INSERT OR IGNORE INTO tx(message_id, type, amount, currency, merchant, merchant_
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 recentTx:
-SELECT tx.*, message.received_at FROM tx JOIN message ON message.id = tx.message_id
+SELECT tx.*, message.received_at, message.sender FROM tx JOIN message ON message.id = tx.message_id
 WHERE tx.hidden = 0 ORDER BY message.received_at DESC LIMIT 500;
 
 txDetail:

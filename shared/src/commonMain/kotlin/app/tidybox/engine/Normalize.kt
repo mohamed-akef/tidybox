@@ -10,6 +10,9 @@ private val EASTERN_ARABIC = "۰۱۲۳۴۵۶۷۸۹"
 private val ALEF_VARIANTS = Regex("[أإآٱ]")
 private val RUN_OF_SPACE = Regex("[ \\t]+")
 
+/** Alef and alef-maqsura folding, shared by message text and template patterns. */
+internal fun foldArabic(s: String): String = ALEF_VARIANTS.replace(s, "ا").replace('ى', 'ي')
+
 /**
  * Message-level normalization. Everything a template regex sees goes through here first.
  *
@@ -34,7 +37,7 @@ fun normalize(text: String): String {
             }
         }
     }
-    val s = ALEF_VARIANTS.replace(sb, "ا").replace('ى', 'ي')
+    val s = foldArabic(sb.toString())
     return s.split('\n')
         .map { RUN_OF_SPACE.replace(it, " ").trim() }
         .filter { it.isNotEmpty() }
