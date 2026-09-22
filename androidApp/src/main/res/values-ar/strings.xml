@@ -21,7 +21,6 @@
     <string name="uncategorized">غير مصنّف</string>
     <string name="spent">المصروف</string>
     <string name="received">الوارد</string>
-    <string name="pick_category">تصنيف %1$s</string>
     <string name="empty">لا عمليات بعد. تُقرأ رسائل البنك تلقائيًا؛ انتظر الرسالة التالية أو أعد الاستيراد من الإعدادات.</string>
     <string name="backup_title">النسخ الاحتياطي</string>
     <string name="backup_help">ملف مشفّر يحوي رسائلك الأصلية وتصحيحاتك. احتفظ به أينما شئت؛ لا يفتحه إلا هذه العبارة السرية.</string>
@@ -51,4 +50,13 @@
     <string name="reparsed">أُعيدت قراءة الرسائل المخزّنة: %1$d عملية جديدة</string>
     <string name="today">اليوم</string>
     <string name="yesterday">أمس</string>
+    <string name="direction">الاتجاه</string>
+    <string name="expense">مصروف (خرج مال)</string>
+    <string name="income">دخل (دخل مال)</string>
+    <string name="category">الفئة</string>
+    <string name="category_applies_to_merchant">يُطبَّق على كل عمليات %1$s السابقة والقادمة.</string>
+    <string name="original_message">الرسالة الأصلية</string>
+    <string name="from_sender">من %1$s</string>
+    <string name="message_not_kept">لم يُحتفظ بنص الرسالة (الإعدادات ← الخصوصية).</string>
+    <string name="remove_transaction">إزالة من Tidy Box</string>
 </resources>

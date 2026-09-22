@@ -21,7 +21,6 @@
     <string name="uncategorized">Uncategorized</string>
     <string name="spent">Spent</string>
     <string name="received">Received</string>
-    <string name="pick_category">Category for %1$s</string>
     <string name="empty">No transactions yet. Bank SMS are read automatically; wait for the next one, or re-import from Settings.</string>
     <string name="backup_title">Backup</string>
     <string name="backup_help">An encrypted file of your raw messages and corrections. Keep it anywhere; only this passphrase opens it.</string>
@@ -51,4 +50,13 @@
     <string name="reparsed">Re-read stored messages: %1$d new transactions</string>
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
+    <string name="direction">Direction</string>
+    <string name="expense">Expense (money out)</string>
+    <string name="income">Income (money in)</string>
+    <string name="category">Category</string>
+    <string name="category_applies_to_merchant">Applies to every transaction from %1$s, past and future.</string>
+    <string name="original_message">Original message</string>
+    <string name="from_sender">From %1$s</string>
+    <string name="message_not_kept">Message text was not kept (Settings → Privacy).</string>
+    <string name="remove_transaction">Remove from Tidy Box</string>
 </resources>

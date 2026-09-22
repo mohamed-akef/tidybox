@@ -42,7 +42,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -68,6 +67,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import app.tidybox.db.RecentTx
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import app.tidybox.db.TidyBoxDb
+import app.tidybox.db.TxDetail
+import app.tidybox.engine.TxType
 import app.tidybox.engine.knownCategories
 import app.tidybox.sms.backfill
 import app.tidybox.sms.seenSenders
@@ -110,7 +118,7 @@ private fun App() {
     var granted by remember { mutableStateOf(PERMS.all { ContextCompat.checkSelfPermission(ctx, it) == PackageManager.PERMISSION_GRANTED }) }
     var rows by remember { mutableStateOf(emptyList<RecentTx>()) }
     var status by remember { mutableStateOf("") }
-    var picking by remember { mutableStateOf<RecentTx?>(null) }
+    var picking by remember { mutableStateOf<Long?>(null) }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted = it.values.all { v -> v } }
 
     var seen by remember { mutableStateOf(emptyList<String>()) }
@@ -139,22 +147,7 @@ private fun App() {
     fun allow(id: String) { Senders.set(ctx, Senders.get(ctx) + id); import(0) }
 
     picking?.let { t ->
-        AlertDialog(
-            onDismissRequest = { picking = null },
-            title = { Text(stringResource(R.string.pick_category, t.merchant ?: "")) },
-            text = {
-                val cats = remember { knownCategories(RulePacks.current(ctx)) }
-                LazyColumn {
-                    items(cats) { cat ->
-                        TextButton(onClick = {
-                            picking = null
-                            scope.launch { withContext(Dispatchers.IO) { correct(Db.get(ctx), t.merchant_key!!, cat) }; reload() }
-                        }, Modifier.fillMaxWidth()) { Text(cat) }
-                    }
-                }
-            },
-            confirmButton = {},
-        )
+        TxSheet(t, onDismiss = { picking = null }, onChanged = { reload() })
     }
 
     Scaffold(topBar = {
@@ -164,7 +157,7 @@ private fun App() {
         )
     }) { pad ->
         if (settings) Settings(Modifier.padding(pad).padding(12.dp), granted, status, ::import, onReload = ::reload)
-        else Inbox(Modifier.padding(pad).padding(12.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it }, onAllow = ::allow)
+        else Inbox(Modifier.padding(pad).padding(12.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
     }
 }
 
@@ -238,7 +231,7 @@ private fun TxRow(t: RecentTx, uncategorized: String, onPick: (RecentTx) -> Unit
         else -> "" to MaterialTheme.colorScheme.onSurface
     }
     ListItem(
-        modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable(enabled = t.merchant_key != null) { onPick(t) },
+        modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable { onPick(t) },
         leadingContent = {
             Surface(Modifier.size(44.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
                 Box(contentAlignment = Alignment.Center) { Text(emoji, style = MaterialTheme.typography.titleMedium) }
@@ -295,6 +288,71 @@ private fun MonthCard(month: String, txs: List<RecentTx>, uncategorized: String)
             }
             // A total that silently omits rows is a wrong total. Say so rather than convert (design §7).
             if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+        }
+    }
+}
+
+/**
+ * Everything about one transaction, and every correction the user can make to it: direction
+ * (expense / income), category, removal, and the original message it came from.
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun TxSheet(txId: Long, onDismiss: () -> Unit, onChanged: () -> Unit) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var t by remember { mutableStateOf<TxDetail?>(null) }
+    fun load() { scope.launch { t = withContext(Dispatchers.IO) { Db.get(ctx).tidyBoxQueries.txDetail(txId).executeAsOneOrNull() } } }
+    LaunchedEffect(txId) { load() }
+    fun edit(block: (TidyBoxDb) -> Unit) { scope.launch { withContext(Dispatchers.IO) { block(Db.get(ctx)) }; load(); onChanged() } }
+    val d = t ?: return
+    val uncategorized = stringResource(R.string.uncategorized)
+    val name = d.merchant ?: d.type.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+    val isExpense = d.type in EXPENSE
+    val isIncome = d.type in INCOME
+    val cats = remember { knownCategories(RulePacks.current(ctx)) }
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.padding(horizontal = 20.dp).padding(bottom = 32.dp).verticalScroll(rememberScrollState())) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(Modifier.size(48.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
+                    Box(contentAlignment = Alignment.Center) { Text(CATEGORY_EMOJI[d.category] ?: name.first().uppercase(), style = MaterialTheme.typography.titleLarge) }
+                }
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(listOfNotNull(d.occurred_at, d.card_last4?.let { "•••• $it" }).joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                }
+                Text(
+                    (if (isExpense) "−" else if (isIncome) "+" else "") + money(d.amount) + " " + d.currency,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (isExpense) MaterialTheme.colorScheme.error else if (isIncome) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+
+            Text(stringResource(R.string.direction), Modifier.padding(top = 20.dp, bottom = 6.dp), style = MaterialTheme.typography.labelLarge)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(selected = isExpense, onClick = { edit { it.tidyBoxQueries.setType(TxType.PURCHASE.name, d.id) } }, label = { Text(stringResource(R.string.expense)) })
+                FilterChip(selected = isIncome, onClick = { edit { it.tidyBoxQueries.setType(TxType.DEPOSIT.name, d.id) } }, label = { Text(stringResource(R.string.income)) })
+            }
+
+            Text(stringResource(R.string.category), Modifier.padding(top = 16.dp, bottom = 6.dp), style = MaterialTheme.typography.labelLarge)
+            if (d.merchant_key != null) Text(stringResource(R.string.category_applies_to_merchant, d.merchant ?: ""), style = MaterialTheme.typography.bodySmall)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (cat in cats) FilterChip(
+                    selected = cat == (d.category ?: uncategorized),
+                    onClick = { edit { db -> d.merchant_key?.let { correct(db, it, cat) } ?: correctRow(db, d.id, cat) } },
+                    label = { Text("${CATEGORY_EMOJI[cat] ?: ""} $cat".trim()) },
+                )
+            }
+
+            Text(stringResource(R.string.original_message), Modifier.padding(top = 20.dp, bottom = 6.dp), style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.from_sender, d.sender), style = MaterialTheme.typography.bodySmall)
+            Surface(Modifier.fillMaxWidth().padding(top = 6.dp), shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                Text(d.body.ifEmpty { stringResource(R.string.message_not_kept) }, Modifier.padding(12.dp), style = MaterialTheme.typography.bodyMedium)
+            }
+
+            TextButton(onClick = { edit { it.tidyBoxQueries.setHidden(1, d.id) }; onDismiss() }, Modifier.padding(top = 16.dp)) {
+                Text(stringResource(R.string.remove_transaction), color = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }

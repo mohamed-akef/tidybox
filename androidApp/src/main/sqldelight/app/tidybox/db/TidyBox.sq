@@ -1,8 +1,8 @@
 -- Design §3. Raw messages are kept so a rule-pack update can re-parse history (O4).
 -- Encrypted at rest: SQLCipher, passphrase wrapped by an AndroidKeyStore AES key (DbKey.kt).
--- ponytail: schema version 1, no .sqm migrations — every later change edits these CREATE TABLEs
---   in place, which is only safe while no build has reached a device. Freeze this and start
---   writing .sqm files at the first tagged release.
+-- Schema version = 1 + number of files in migrations/. Builds are on devices: every change to a
+-- CREATE TABLE below needs a matching migrations/N.sqm, and the CREATE TABLE must end up equal
+-- to what the migrations produce.
 
 CREATE TABLE message (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,7 +24,8 @@ CREATE TABLE tx (
     card_last4 TEXT,
     occurred_at TEXT,                   -- ISO-ish from the message; NULL when the bank gave none
     category TEXT,
-    category_reason TEXT NOT NULL
+    category_reason TEXT NOT NULL,
+    hidden INTEGER NOT NULL DEFAULT 0    -- removed by the user; kept so a re-import cannot bring it back
 );
 
 CREATE TABLE merchant_rule (
@@ -54,7 +55,22 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 recentTx:
 SELECT tx.*, message.received_at FROM tx JOIN message ON message.id = tx.message_id
-ORDER BY message.received_at DESC LIMIT 500;
+WHERE tx.hidden = 0 ORDER BY message.received_at DESC LIMIT 500;
+
+txDetail:
+SELECT tx.*, message.sender, message.body, message.received_at FROM tx JOIN message ON message.id = tx.message_id WHERE tx.id = ?;
+
+setType:
+UPDATE tx SET type = ? WHERE id = ?;
+
+setHidden:
+UPDATE tx SET hidden = ? WHERE id = ?;
+
+-- A bank date after the SMS arrived is a misread (d/m/yy vs yy/m/d). New parses are guarded in
+-- code; this repairs rows stored before the guard existed.
+clearImplausibleDates:
+UPDATE tx SET occurred_at = NULL
+WHERE occurred_at > strftime('%Y-%m-%d %H:%M', (SELECT received_at / 1000 + 86400 FROM message WHERE message.id = tx.message_id), 'unixepoch');
 
 -- Engine changed: give every raw message that never became a transaction another pass.
 reopenUnread:

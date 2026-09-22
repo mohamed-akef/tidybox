@@ -66,6 +66,7 @@ object RulePacks {
  * @return transactions recovered.
  */
 fun reparseUnread(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
+    db.tidyBoxQueries.clearImplausibleDates()
     db.tidyBoxQueries.reopenUnread()
     return parsePending(db, pack, keepRaw)
 }
@@ -145,6 +146,10 @@ fun correct(db: TidyBoxDb, merchantKey: String, category: String) {
     db.tidyBoxQueries.upsertRule(merchantKey, category)
     db.tidyBoxQueries.applyRule(category, merchantKey)
 }
+
+/** Category for one row only — used when the row has no merchant to hang a rule on. */
+fun correctRow(db: TidyBoxDb, txId: Long, category: String) =
+    db.tidyBoxQueries.setCategory(category, CategoryReason.OVERRIDE.name, txId)
 
 /** Re-categorize every transaction with the given pack. User overrides are kept as they are. */
 fun recategorizeAll(db: TidyBoxDb, pack: RulePack) {
