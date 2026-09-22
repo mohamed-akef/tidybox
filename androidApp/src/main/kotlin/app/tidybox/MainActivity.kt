@@ -8,6 +8,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,6 +43,7 @@ import androidx.core.content.ContextCompat
 import app.tidybox.db.RecentTx
 import app.tidybox.engine.knownCategories
 import app.tidybox.sms.backfill
+import app.tidybox.sms.seenSenders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,8 +82,8 @@ private fun App() {
     LaunchedEffect(Unit) { reload() }
     fun import(sinceMillis: Long) {
         scope.launch {
-            val n = withContext(Dispatchers.IO) { backfill(ctx, sinceMillis) { c -> scope.launch { status = ctx.getString(R.string.importing, c) } } }
-            status = ctx.getString(R.string.imported, n)
+            val (n, found) = withContext(Dispatchers.IO) { backfill(ctx, sinceMillis) { c -> scope.launch { status = ctx.getString(R.string.importing, c) } } }
+            status = ctx.getString(R.string.imported, n, found)
             reload()
         }
     }
@@ -170,6 +173,8 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
     val scope = rememberCoroutineScope()
     var senders by remember { mutableStateOf(Senders.get(ctx).sorted()) }
     var newSender by remember { mutableStateOf("") }
+    var seen by remember { mutableStateOf<List<String>?>(null) }
+    fun allow(id: String) { Senders.set(ctx, Senders.get(ctx) + id); senders = Senders.get(ctx).sorted(); seen = seen?.minus(id) }
     var passphrase by remember { mutableStateOf("") }
     var backupStatus by remember { mutableStateOf("") }
     val now = System.currentTimeMillis()
@@ -259,9 +264,14 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         Text(stringResource(R.string.senders_help), style = MaterialTheme.typography.bodySmall)
         Row(Modifier.fillMaxWidth()) {
             OutlinedTextField(newSender, { newSender = it }, Modifier.weight(1f), label = { Text(stringResource(R.string.sender_add)) }, singleLine = true)
-            TextButton(enabled = newSender.isNotBlank(), onClick = {
-                Senders.set(ctx, Senders.get(ctx) + newSender.trim()); senders = Senders.get(ctx).sorted(); newSender = ""
-            }) { Text(stringResource(R.string.add)) }
+            TextButton(enabled = newSender.isNotBlank(), onClick = { allow(newSender.trim()); newSender = "" }) { Text(stringResource(R.string.add)) }
+        }
+        TextButton(enabled = granted, onClick = { scope.launch { seen = withContext(Dispatchers.IO) { seenSenders(ctx) } } }) { Text(stringResource(R.string.scan_senders)) }
+        seen?.let { ids ->
+            Text(stringResource(if (ids.isEmpty()) R.string.scan_none else R.string.scan_help), style = MaterialTheme.typography.bodySmall)
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+                for (id in ids) TextButton(onClick = { allow(id) }) { Text("+ $id") }
+            }
         }
         LazyColumn {
             items(senders, key = { it }) { s ->

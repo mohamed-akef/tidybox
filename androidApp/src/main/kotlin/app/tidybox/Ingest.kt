@@ -22,6 +22,9 @@ import java.security.MessageDigest
 val DEFAULT_SENDERS = setOf(
     "AlRajhiBank", "Alinma", "AlinmaBank", "SNB", "AlAhli", "SABB", "Riyad Bank", "RiyadBank", "ANB",
     "BSF", "AlBilad", "Bank AlBilad", "AlJazira", "BankAlJazira", "stc pay", "stcpay", "STC Bank", "D360",
+    // Egypt — observed on a device. Seeds are only ever IDs seen on a real phone; the
+    // "Scan phone" picker in Settings covers every other bank and country.
+    "CIB", "KFH Egypt", "VF-Cash",
 )
 
 object Senders {
@@ -33,8 +36,11 @@ object Senders {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY, senders).commit()
     }
     /** The one matching rule. Everything that can persist a message routes through here. */
+    /** Case, spaces and dashes are presentation ("Riyad Bank" vs "RiyadBank"). Still an exact
+     *  ID match: "CIB" must NOT admit "CIB OTP", or OTP bodies would be stored under Keep raw. */
+    fun key(id: String): String = id.lowercase().filterNot { it == ' ' || it == '-' || it == '_' }
     fun allows(allowed: Set<String>, sender: String?): Boolean =
-        sender != null && allowed.any { it.equals(sender.trim(), ignoreCase = true) }
+        sender != null && allowed.any { key(it) == key(sender) }
 }
 
 /** The active merchant pack: a user-imported JSON if one parsed, else the bundled one (design §6). */
@@ -124,7 +130,8 @@ fun recategorizeAll(db: TidyBoxDb, pack: RulePack) {
  * reversing a privacy setting with no error and no UI. The compiler is the only thing that
  * reliably notices the next call site.
  */
-fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean) {
+fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
+    var found = 0
     val overrides = db.tidyBoxQueries.rules().executeAsList().associate { it.merchant_key to it.category }
     for (m in db.tidyBoxQueries.unparsed().executeAsList()) {
         when (val r = extract(m.body)) {
@@ -136,6 +143,7 @@ fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean) {
                     tx.occurredAt?.let { "%04d-%02d-%02d %02d:%02d".format(it.year, it.month, it.day, it.hour, it.minute) },
                     c.category, c.reason.name,
                 )
+                found++
             }
             is EngineResult.Rejected -> Unit // informational; stays in `message` only
         }
@@ -144,4 +152,5 @@ fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean) {
     // Runs on every parse, not just when the switch flips: a message that arrived while the app
     // was closed must not keep its body either. `body != ''` in the query makes the repeat a no-op.
     if (!keepRaw) db.tidyBoxQueries.blankBodies()
+    return found
 }

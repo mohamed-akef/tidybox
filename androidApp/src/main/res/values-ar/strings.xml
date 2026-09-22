@@ -6,7 +6,7 @@
     <string name="android15_note">على أندرويد 15 وما بعده، التطبيق المثبّت من خارج Google Play يحتاج إذنًا أولًا: افتح معلومات التطبيق ← ⋮ ← السماح بالإعدادات المقيّدة، ثم عد إلى هنا.</string>
     <string name="import_history">استيراد الرسائل السابقة</string>
     <string name="importing">جارٍ الاستيراد… %1$d</string>
-    <string name="imported">تم استيراد %1$d رسالة بنكية</string>
+    <string name="imported">تم استيراد %1$d رسالة بنكية، وُجدت %2$d عملية</string>
     <string name="range_1m">آخر شهر</string>
     <string name="range_3m">آخر 3 أشهر</string>
     <string name="range_12m">آخر سنة</string>
@@ -22,7 +22,7 @@
     <string name="spent">المصروف</string>
     <string name="received">الوارد</string>
     <string name="pick_category">تصنيف %1$s</string>
-    <string name="empty">لا عمليات بعد. استورد الرسائل السابقة أو انتظر رسالة البنك التالية.</string>
+    <string name="empty">لا عمليات بعد. الإعدادات ← استيراد الرسائل السابقة، أو انتظر رسالة البنك التالية.</string>
     <string name="backup_title">النسخ الاحتياطي</string>
     <string name="backup_help">ملف مشفّر يحوي رسائلك الأصلية وتصحيحاتك. احتفظ به أينما شئت؛ لا يفتحه إلا هذه العبارة السرية.</string>
     <string name="passphrase">العبارة السرية</string>
@@ -42,4 +42,7 @@
     <string name="keep_raw_help">مفعّل: حزمة قواعد أحدث تستطيع إعادة قراءة سجلك، وملف النسخ الاحتياطي يحوي رسائلك. معطّل: يُمسح نص الرسالة فور قراءتها ولا يمكن إعادة اشتقاق السجل. الإيقاف يمسح النصوص المخزّنة الآن.</string>
     <string name="fx_excluded">%1$d عملية بعملة أخرى معروضة ولم تُحتسب في هذه المجاميع.</string>
     <string name="backup_needs_raw">التصدير معطّل لأن خيار الاحتفاظ بنص الرسائل معطّل — لن يحوي الملف سوى تصحيحاتك.</string>
+    <string name="scan_senders">فحص الهاتف عن معرّفات المرسلين</string>
+    <string name="scan_help">معرّفات المرسلين الموجودة على هذا الهاتف (لا تُعرض أرقام الأشخاص أبدًا). اضغط للسماح.</string>
+    <string name="scan_none">لم يُعثر على معرّفات جديدة.</string>
 </resources>
