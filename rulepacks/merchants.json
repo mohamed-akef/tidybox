@@ -303,18 +303,18 @@
         "reject": "AUTH_HOLD"
       },
       {
-        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة",
-        "reject": "NO_TEMPLATE",
+        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة|كسبت .{0,12}كاش باك|احمي نفسك",
+        "reject": "INFORMATIONAL",
         "scope": "whole"
       },
       {
         "re": "تم تقسيط|كشف حساب|تحديث أنظمة|قناة واتساب|بحد أدنى",
-        "reject": "NO_TEMPLATE",
+        "reject": "INFORMATIONAL",
         "scope": "whole"
       },
       {
         "re": "تم استلام الطلب لرد",
-        "reject": "NO_TEMPLATE",
+        "reject": "INFORMATIONAL",
         "scope": "whole"
       },
       {
@@ -451,14 +451,14 @@
         "flags": "i"
       },
       {
-        "re": "update your KYC|visit the branch",
-        "reject": "NO_TEMPLATE",
+        "re": "update your KYC|visit the branch|statement password",
+        "reject": "INFORMATIONAL",
         "scope": "whole",
         "flags": "i"
       },
       {
         "re": "cashback|discount|% ?off|\\boffer\\b|terms and conditions|\\benjoy\\b|promo|points as a gift",
-        "reject": "NO_TEMPLATE",
+        "reject": "INFORMATIONAL",
         "scope": "whole",
         "flags": "i"
       },

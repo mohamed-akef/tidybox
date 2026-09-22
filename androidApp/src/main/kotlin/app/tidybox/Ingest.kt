@@ -6,6 +6,7 @@ import app.tidybox.db.TidyBoxDb
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import app.tidybox.engine.CategoryReason
 import app.tidybox.engine.EngineResult
+import app.tidybox.engine.Rejection
 import app.tidybox.engine.RulePack
 import app.tidybox.engine.Transaction
 import app.tidybox.engine.TxType
@@ -207,7 +208,11 @@ fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
  * decides to share; the app only makes the sample easy to produce. Every digit becomes `0`
  * (a template needs the shape, not the values); merchant names stay, and the help text says so.
  */
-fun unreadableSample(db: TidyBoxDb, limit: Long = 20): String =
-    db.tidyBoxQueries.unreadable(limit).executeAsList().joinToString("\n\n") { m ->
-        "[" + m.sender + "]\n" + m.body.replace(Regex("\\d"), "0")
-    }
+fun unreadableSample(db: TidyBoxDb, pack: RulePack, limit: Int = 20): String =
+    db.tidyBoxQueries.unreadable(limit * 20L).executeAsList()
+        // Promos, OTPs, statements, login alerts were rejected on purpose; only wording the engine
+        // could not read is worth a template.
+        .filter { m -> (extract(m.body, pack) as? EngineResult.Rejected)?.why in setOf(Rejection.NO_TEMPLATE, Rejection.NO_AMOUNT) }
+        .distinctBy { it.body.replace(Regex("\\d"), "0") }
+        .take(limit)
+        .joinToString("\n\n") { m -> "[" + m.sender + "]\n" + m.body.replace(Regex("\\d"), "0") }

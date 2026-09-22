@@ -605,13 +605,13 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         Row {
             TextButton(onClick = {
                 scope.launch {
-                    val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx)) }
+                    val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx), RulePacks.current(ctx)) }
                     clipboard.setText(AnnotatedString(sample)); copied = sample.isNotEmpty()
                 }
             }) { Text(stringResource(if (copied) R.string.copied else R.string.unreadable_copy)) }
             TextButton(onClick = {
                 scope.launch {
-                    val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx)) }
+                    val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx), RulePacks.current(ctx)) }
                     openIssue(ctx, ctx.getString(R.string.issue_unreadable_title), "**Bank / sender ID:** \n\n**Country and language:** \n\n```\n$sample\n```", "templates")
                 }
             }) { Text(stringResource(R.string.open_issue)) }
