@@ -55,6 +55,13 @@ ORDER BY message.received_at DESC LIMIT 500;
 rules:
 SELECT * FROM merchant_rule;
 
+-- Re-derivation after a rule-pack update (design §1: the engine is pure, so history can be re-categorized).
+allTxForRecategorize:
+SELECT id, type, merchant, category_reason FROM tx;
+
+setCategory:
+UPDATE tx SET category = ?, category_reason = ? WHERE id = ?;
+
 upsertRule:
 INSERT OR REPLACE INTO merchant_rule(merchant_key, category) VALUES (?, ?);
 

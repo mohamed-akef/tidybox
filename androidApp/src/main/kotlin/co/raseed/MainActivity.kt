@@ -38,7 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import co.raseed.db.RecentTx
-import co.raseed.engine.KNOWN_CATEGORIES
+import co.raseed.engine.knownCategories
 import co.raseed.sms.backfill
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -89,8 +89,9 @@ private fun App() {
             onDismissRequest = { picking = null },
             title = { Text(stringResource(R.string.pick_category, t.merchant ?: "")) },
             text = {
+                val cats = remember { knownCategories(RulePacks.current(ctx)) }
                 LazyColumn {
-                    items(KNOWN_CATEGORIES) { cat ->
+                    items(cats) { cat ->
                         TextButton(onClick = {
                             picking = null
                             scope.launch { withContext(Dispatchers.IO) { correct(Db.get(ctx), t.merchant_key!!, cat) }; reload() }
@@ -189,14 +190,40 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
                 withContext(Dispatchers.IO) {
                     val blob = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
                     val pw = passphrase.toCharArray()
-                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), blob, pw) } finally { pw.fill('\u0000') }
+                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), RulePacks.current(ctx), blob, pw) } finally { pw.fill('\u0000') }
                 }
             }.map { (m, r) -> ctx.getString(R.string.imported_backup, m, r) }.getOrElse { ctx.getString(R.string.import_failed) }
             onReload()
         }
     }
+    var pack by remember { mutableStateOf(RulePacks.current(ctx)) }
+    var packStatus by remember { mutableStateOf("") }
+    val loadPack = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            packStatus = runCatching {
+                withContext(Dispatchers.IO) {
+                    val text = ctx.contentResolver.openInputStream(uri)!!.use { String(it.readBytes()) }
+                    RulePacks.install(ctx, text).also { recategorizeAll(Db.get(ctx), it) }
+                }
+            }.map { pack = it; "" }.getOrElse { ctx.getString(R.string.rulepack_bad) }
+            onReload()
+        }
+    }
     Column(modifier) {
-        Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.rulepack_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.rulepack_help), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.rulepack_current, pack.name, pack.version), style = MaterialTheme.typography.bodySmall)
+        Row {
+            TextButton(onClick = { loadPack.launch(arrayOf("application/json", "*/*")) }) { Text(stringResource(R.string.rulepack_load)) }
+            TextButton(onClick = {
+                RulePacks.reset(ctx); pack = RulePacks.current(ctx)
+                scope.launch { withContext(Dispatchers.IO) { recategorizeAll(Db.get(ctx), pack) }; onReload() }
+            }) { Text(stringResource(R.string.rulepack_reset)) }
+            Text(packStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+        }
+
+        Text(stringResource(R.string.backup_title), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.backup_help), style = MaterialTheme.typography.bodySmall)
         OutlinedTextField(passphrase, { passphrase = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.passphrase)) }, singleLine = true,
             visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())

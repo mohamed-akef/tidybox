@@ -1,0 +1,274 @@
+{
+  "version": 1,
+  "name": "raseed-merchants",
+  "categories": [
+    "Cash",
+    "Finance",
+    "Food",
+    "Fuel",
+    "Government",
+    "Groceries",
+    "Health",
+    "Income",
+    "Other",
+    "Services",
+    "Shopping",
+    "Software",
+    "Telecom",
+    "Transfer",
+    "Transport",
+    "Travel"
+  ],
+  "merchants": {
+    "Food": [
+      "albaik",
+      "al baik",
+      "herfy",
+      "kudu",
+      "mcdonald",
+      "kfc",
+      "burger king",
+      "hardee",
+      "dunkin",
+      "starbucks",
+      "barn",
+      "shawarmer",
+      "hungerstation",
+      "jahez",
+      "keeta",
+      "talabat",
+      "toyou",
+      "mrsool",
+      "pizza hut",
+      "dominos",
+      "subway",
+      "maestro",
+      "kababji",
+      "tazaj",
+      "hamburgini",
+      "half million",
+      "dose cafe"
+    ],
+    "Groceries": [
+      "panda",
+      "tamimi",
+      "othaim",
+      "danube",
+      "carrefour",
+      "lulu",
+      "bin dawood",
+      "nesto",
+      "farm superstores",
+      "manuel",
+      "sadhan",
+      "raya",
+      "abdullah al othaim"
+    ],
+    "Shopping": [
+      "amazon",
+      "noon",
+      "jarir",
+      "extra",
+      "ikea",
+      "saco",
+      "shein",
+      "namshi",
+      "centrepoint",
+      "max",
+      "h&m",
+      "zara",
+      "redtag",
+      "lc waikiki"
+    ],
+    "Transport": [
+      "careem",
+      "uber",
+      "kaiian",
+      "jeeny",
+      "sapn",
+      "riyadh metro"
+    ],
+    "Fuel": [
+      "aldrees",
+      "sasco",
+      "naft",
+      "petromin",
+      "petroly",
+      "adnoc",
+      "tas'helat",
+      "liter"
+    ],
+    "Telecom": [
+      "mobily",
+      "stc",
+      "zain",
+      "sawa",
+      "lebara",
+      "virgin mobile",
+      "salam",
+      "موبايلي",
+      "سوا",
+      "زين"
+    ],
+    "Software": [
+      "apple.com/bill",
+      "apple.com",
+      "google",
+      "netflix",
+      "spotify",
+      "shahid",
+      "osn",
+      "anghami",
+      "anthropic",
+      "claude.ai",
+      "openai",
+      "chatgpt",
+      "digitalocean",
+      "github",
+      "microsoft",
+      "adobe",
+      "steam",
+      "playstation"
+    ],
+    "Health": [
+      "nahdi",
+      "dawaa",
+      "al dawaa",
+      "whites",
+      "kunooz",
+      "al-dawaa",
+      "sulaiman al habib",
+      "mouwasat"
+    ],
+    "Travel": [
+      "airport",
+      "saudia",
+      "flynas",
+      "flyadeal",
+      "booking.com",
+      "airbnb",
+      "almosafer",
+      "hilton",
+      "marriott"
+    ],
+    "Government": [
+      "absher",
+      "muqeem",
+      "tamm",
+      "vat",
+      "zakat",
+      "moi",
+      "رخص القيادة"
+    ],
+    "Finance": [
+      "investment",
+      "capital",
+      "tadawul",
+      "derayah",
+      "alinma capital"
+    ],
+    "Transfer": [
+      "stc pay",
+      "urpay",
+      "barq",
+      "tweeq"
+    ],
+    "Services": [
+      "laundry",
+      "car wash",
+      "salon",
+      "barber"
+    ]
+  },
+  "keywords": {
+    "latin": {
+      "Food": [
+        "rest",
+        "restaurant",
+        "resto",
+        "cafe",
+        "caffe",
+        "coffee",
+        "bakery",
+        "kitchen",
+        "grill",
+        "shawarma",
+        "burger",
+        "pizza",
+        "mtaam",
+        "mataam",
+        "matam",
+        "mtam"
+      ],
+      "Groceries": [
+        "market",
+        "supermarket",
+        "hyper",
+        "grocery",
+        "mart",
+        "super"
+      ],
+      "Health": [
+        "pharm",
+        "pharmacy"
+      ],
+      "Fuel": [
+        "petrol",
+        "fuel",
+        "station",
+        "mahta",
+        "mahatta"
+      ],
+      "Services": [
+        "laun",
+        "laundry",
+        "wash"
+      ],
+      "Travel": [
+        "hotel",
+        "airline",
+        "airways",
+        "airport"
+      ],
+      "Software": [
+        "subscription"
+      ]
+    },
+    "latinPhrases": {
+      "Fuel": [
+        "gas station"
+      ]
+    },
+    "arabic": {
+      "Food": [
+        "مطعم",
+        "كافيه",
+        "كوفي",
+        "مخبز",
+        "شاورما",
+        "بوفيه"
+      ],
+      "Groceries": [
+        "بقالة",
+        "تموينات",
+        "سوبر ماركت",
+        "هايبر"
+      ],
+      "Health": [
+        "صيدلية"
+      ],
+      "Fuel": [
+        "محطة",
+        "بنزين",
+        "وقود"
+      ],
+      "Services": [
+        "مغسلة"
+      ],
+      "Travel": [
+        "فندق",
+        "طيران"
+      ]
+    }
+  }
+}
