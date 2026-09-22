@@ -2,6 +2,7 @@ package app.tidybox
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -251,6 +252,9 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, st
     val month = keys.getOrNull(idx)
     val txs = month?.let { months[it] }.orEmpty()
     val mainCurrency = txs.groupingBy { it.currency }.eachCount().maxByOrNull { it.value }?.key
+    // Tap a category chip to see only that category; "" is the uncategorized bucket.
+    var filter by rememberSaveable { mutableStateOf<String?>(null) }
+    val shown = if (filter == null) txs else txs.filter { (it.category ?: "") == filter }
 
     LazyColumn(modifier, contentPadding = PaddingValues(bottom = 32.dp)) {
         if (!granted) item {
@@ -277,11 +281,12 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, st
         }
         if (month != null) {
             item(key = "m-$month") {
-                MonthSummary(month, txs, mainCurrency ?: "", uncategorized,
+                MonthSummary(month, txs, mainCurrency ?: "", uncategorized, filter,
                     hasNewer = idx > 0, hasOlder = idx < keys.size - 1,
-                    onNewer = { monthIdx = idx - 1 }, onOlder = { monthIdx = idx + 1 })
+                    onNewer = { monthIdx = idx - 1 }, onOlder = { monthIdx = idx + 1 },
+                    onFilter = { filter = if (filter == it) null else it })
             }
-            txs.groupBy { it.day() }.toSortedMap(reverseOrder()).forEach { (day, dayTxs) ->
+            shown.groupBy { it.day() }.toSortedMap(reverseOrder()).forEach { (day, dayTxs) ->
                 item(key = "d-$day") {
                     val label = when (day) {
                         today -> stringResource(R.string.today)
@@ -332,7 +337,8 @@ private fun TxRow(t: RecentTx, uncategorized: String, mainCurrency: String?, onP
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncategorized: String, hasNewer: Boolean, hasOlder: Boolean, onNewer: () -> Unit, onOlder: () -> Unit) {
+private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncategorized: String, filter: String?, hasNewer: Boolean, hasOlder: Boolean, onNewer: () -> Unit, onOlder: () -> Unit, onFilter: (String) -> Unit) {
+    val ctx = LocalContext.current
     val inMain = txs.filter { it.currency == main }
     val spent = inMain.filter { it.type in EXPENSE }.sumOf { it.amount }
     val received = inMain.filter { it.type in INCOME }.sumOf { it.amount }
@@ -364,7 +370,10 @@ private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncat
             }
             FlowRow(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 for ((cat, sum) in byCat) Row(
-                    Modifier.clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 10.dp, vertical = 5.dp),
+                    Modifier.clip(RoundedCornerShape(50))
+                        .background(if (filter == (cat ?: "")) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer)
+                        .clickable { onFilter(cat ?: "") }
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.size(8.dp).clip(CircleShape).background(categoryColor(cat)))
@@ -374,7 +383,18 @@ private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncat
             }
         }
         if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        HorizontalDivider(Modifier.padding(top = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+        if (filter != null) Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.showing_only, if (filter == "") uncategorized else filter), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+            if (filter == "") TextButton(onClick = {
+                // Merchant names and counts only — no amounts, no dates — for a GitHub issue that
+                // grows the shared dictionary. The user sees the text in the share sheet first.
+                val text = ctx.getString(R.string.share_uncategorized_intro) + "\n\n" +
+                    Db.get(ctx).tidyBoxQueries.uncategorizedMerchants().executeAsList().joinToString("\n") { "${it.merchant} ×${it.n}" }
+                ctx.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), null))
+            }) { Text(stringResource(R.string.share_uncategorized)) }
+            TextButton(onClick = { onFilter(filter) }) { Text(stringResource(R.string.clear_filter)) }
+        }
+        HorizontalDivider(Modifier.padding(top = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
@@ -498,7 +518,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         }
     }
     var keepRaw by remember { mutableStateOf(KeepRaw.get(ctx)) }
-    Column(modifier) {
+    Column(modifier.verticalScroll(rememberScrollState()).padding(bottom = 32.dp)) {
         Section(stringResource(R.string.privacy_title))
         Row(Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.keep_raw), Modifier.weight(1f).padding(top = 12.dp))
@@ -563,13 +583,9 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
                 for (id in ids) TextButton(onClick = { allow(id) }) { Text("+ $id") }
             }
         }
-        LazyColumn {
-            items(senders, key = { it }) { s ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Text(s, Modifier.weight(1f).padding(top = 12.dp))
-                    TextButton(onClick = { Senders.set(ctx, Senders.get(ctx) - s); senders = Senders.get(ctx).sorted() }) { Text(stringResource(R.string.remove)) }
-                }
-            }
+        for (s in senders) Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Text(s, Modifier.weight(1f).padding(top = 12.dp))
+            TextButton(onClick = { Senders.set(ctx, Senders.get(ctx) - s); senders = Senders.get(ctx).sorted() }) { Text(stringResource(R.string.remove)) }
         }
     }
 }
