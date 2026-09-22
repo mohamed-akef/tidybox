@@ -13,7 +13,10 @@ import javax.crypto.spec.SecretKeySpec
 
 /**
  * The backup story (design §3, §7): an encrypted file the user keeps wherever they like.
- * Contents = raw messages + the user's corrections. Everything else is re-derived on import.
+ * Contents = raw messages + the user's corrections. Everything else is re-derived on import —
+ * which is exactly why this only works while *Keep raw messages* is on. With it off the bodies
+ * are already blank, so the file would restore corrections and nothing else; Settings disables
+ * Export in that state rather than writing a backup that silently is not one.
  *
  * Format: magic "RSD1" || salt(16) || iv(12) || AES-256-GCM(PBKDF2-HMAC-SHA256(passphrase, salt, 200k) , json)
  */
@@ -61,7 +64,7 @@ fun exportEncrypted(db: RaseedDb, passphrase: CharArray): ByteArray {
  * @return (messages stored, rules stored); the message count excludes anything the allowlist
  *   dropped. Throws on wrong passphrase or corrupt file.
  */
-fun importEncrypted(db: RaseedDb, allowed: Set<String>, pack: RulePack, blob: ByteArray, passphrase: CharArray): Pair<Int, Int> {
+fun importEncrypted(db: RaseedDb, allowed: Set<String>, pack: RulePack, keepRaw: Boolean, blob: ByteArray, passphrase: CharArray): Pair<Int, Int> {
     val json = JSONObject(String(open(blob, passphrase)))
     val q = db.raseedQueries
     val msgs = json.getJSONArray("messages")
@@ -73,7 +76,7 @@ fun importEncrypted(db: RaseedDb, allowed: Set<String>, pack: RulePack, blob: By
         }
         for (i in 0 until rules.length()) rules.getJSONObject(i).let { q.upsertRule(it.getString("k"), it.getString("c")) }
     }
-    parsePending(db, pack)
+    parsePending(db, pack, keepRaw)
     // Rows parsed just now already picked these up via `overrides`; this is for rows that were
     // already in the database before the import.
     for (i in 0 until rules.length()) rules.getJSONObject(i).let { q.applyRule(it.getString("c"), it.getString("k")) }
