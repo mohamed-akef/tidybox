@@ -10,11 +10,13 @@ Your financial history never leaves your phone, because there is nowhere for it 
 
 ---
 
-## Status: first code — parsing engine and an Android skeleton
+## Status: Android v0.1 built — not yet run on a device
 
-Research, a design, one measurement, and the first code: the parsing engine (`shared/`)
-with the 174-message corpus as its test suite, and an Android app skeleton that captures
-allowlisted bank SMS and lists transactions. Not yet run on a device.
+The parsing engine (`shared/`) with the 174-message corpus as its test suite, and an Android
+app that captures allowlisted bank SMS, categorizes them, groups them by month, takes
+corrections, and exports an encrypted backup. English and Arabic. What is *not* built is
+listed per-section in [the design](docs/specs/2026-09-16-design.md) — the short list is
+extraction templates as data, rule-pack download, and iOS.
 The design's central assumption — rules and user corrections, no model — has been
 [measured on 174 real messages](docs/spike/RESULT.md): extraction 104/104, categorization
 72% correct / **0% wrong** / 28% abstain on held-out merchants, and an embedding model

@@ -87,4 +87,4 @@ spending a day before spending a month.
 **Done 2026-09-22** on a 174-message public corpus — see [RESULT.md](RESULT.md).
 Extraction 104/104; rules 72% correct / 0% wrong / 28% abstain on held-out merchants;
 the embedding step added nothing and was removed from D4. Re-run when a corpus from
-more than two people exists. S1–S4 still open.
+more than two people exists. S1–S4 still open — S2 and S4 need a physical device.
