@@ -55,8 +55,9 @@ by users.
 protection **hard-blocks** installing a downloaded APK that declares `RECEIVE_SMS` /
 `READ_SMS` — "App blocked to protect your device", no *install anyway*. Workarounds: turn
 Play Protect scanning off for the install, `adb install`, or install through a store client
-(F-Droid) that uses the session installer. This is why the project is going to the official
-F-Droid catalogue rather than GitHub-APK-first.
+(F-Droid) that uses the session installer. So distribution is a **self-hosted F-Droid
+repository on GitHub Pages** (`.github/workflows/fdroid-repo.yml`, built from each release), with
+the official F-Droid catalogue as a later step (draft metadata in `fdroid/app.tidybox.yml`).
 
 **Rejected alternative:** a Play build using `NotificationListenerService` to read bank
 *notifications* instead of SMS. Still restricted, still needs justification, and
