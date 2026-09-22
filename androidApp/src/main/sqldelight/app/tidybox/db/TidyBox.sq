@@ -56,6 +56,9 @@ recentTx:
 SELECT tx.*, message.received_at FROM tx JOIN message ON message.id = tx.message_id
 ORDER BY message.received_at DESC LIMIT 500;
 
+unreadable:
+SELECT sender, body FROM message WHERE parsed = 1 AND body != '' AND id NOT IN (SELECT message_id FROM tx) ORDER BY received_at DESC LIMIT ?;
+
 rules:
 SELECT * FROM merchant_rule;
 

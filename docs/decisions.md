@@ -155,7 +155,12 @@ Bodies are still untouched until the ID is allowlisted.
 **Still open (the real global gap):** the extraction templates are Arabic Saudi shapes.
 An allowlisted English CIB message imports and then fails `NO_TEMPLATE`. Import status now
 shows `N messages, M transactions` so the two failures are distinguishable. Templates per
-bank need real bodies in `fixtures/corpus.jsonl`; the first non-Saudi rows are the next PR.
+bank need real bodies in `fixtures/corpus.jsonl`. First non-Saudi rows landed 2026-09-22:
+12 Egyptian messages (CIB English card charge/refund, NBE Arabic خصم/إضافة) taken from
+public parser test suites, plus a generic English rule set (charged/debited/refund/received/
+sent/ATM/recharge, `at <merchant> on`, `CUR 0.00` or `0.00 CUR`). Still unseen: VF-Cash and
+KFH Egypt wording. Settings has **"Copy 20 unreadable messages"** (digits masked) so a user
+can hand over real samples without screenshots.
 
 ## Open decisions
 

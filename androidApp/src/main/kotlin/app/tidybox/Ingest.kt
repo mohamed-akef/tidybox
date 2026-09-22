@@ -162,3 +162,13 @@ fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
     if (!keepRaw) db.tidyBoxQueries.blankBodies()
     return found
 }
+
+/**
+ * Messages the engine could not read, digits masked, for pasting into a bug report. The user
+ * decides to share; the app only makes the sample easy to produce. Card and account numbers
+ * become `0`s; amounts are kept because they are what a template has to find.
+ */
+fun unreadableSample(db: TidyBoxDb, limit: Long = 20): String =
+    db.tidyBoxQueries.unreadable(limit).executeAsList().joinToString("\n\n") { m ->
+        "[" + m.sender + "]\n" + m.body.replace(Regex("\\d{4,}")) { "0".repeat(it.value.length) }
+    }
