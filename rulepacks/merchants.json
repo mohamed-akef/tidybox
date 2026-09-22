@@ -289,7 +289,7 @@
     "greeting": "^(هلا|عميلنا العزيز|عزيزي|عزيزنا)",
     "types": [
       {
-        "re": "مرفوض|لا يكفي|لم يتم تنفيذ|عدم وجود رصيد",
+        "re": "مرفوض|لا يكفي|لم يتم تنفيذ|عدم وجود رصيد|تم رفض المعاملة|لعدم كفاية",
         "reject": "DECLINED",
         "scope": "whole"
       },
@@ -303,7 +303,7 @@
         "reject": "AUTH_HOLD"
       },
       {
-        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة|كسبت .{0,12}كاش باك|احمي نفسك|تهانينا|اعتبارا من",
+        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة|كسبت .{0,12}كاش باك|احمي نفسك|تهانينا|اعتبارا من|نحيطكم علما|نود اعلامكم|ستتوقف|لن تكون متاحة|شيكات مرتدة|استخدم بطاقاتك|متاحة علي Apple Pay|كاش باك مضمون|حدثت بيانات|تم زياده الحد|حافظ علي فلوسك|استمتع بعروض",
         "reject": "INFORMATIONAL",
         "scope": "whole"
       },
@@ -455,7 +455,7 @@
         "flags": "i"
       },
       {
-        "re": "update your KYC|visit the branch|statement password|^your current .{0,30}balance is",
+        "re": "update your KYC|visit the branch|statement password|^your current .{0,30}balance is|password has been changed|your complaint",
         "reject": "INFORMATIONAL",
         "scope": "whole",
         "flags": "i"
