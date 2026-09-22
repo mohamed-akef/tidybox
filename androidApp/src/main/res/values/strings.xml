@@ -31,4 +31,5 @@
     <string name="exported">Exported</string>
     <string name="imported_backup">Imported %1$d messages, %2$d corrections</string>
     <string name="import_failed">Import failed: wrong passphrase or not a Raseed file</string>
+    <string name="fx_excluded">%1$d row(s) in another currency are listed but not included in these totals.</string>
 </resources>

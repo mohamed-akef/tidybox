@@ -28,8 +28,11 @@ object Senders {
     fun set(context: Context, senders: Set<String>) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY, senders).commit()
     }
-    fun allows(context: Context, sender: String?): Boolean =
-        sender != null && get(context).any { it.equals(sender.trim(), ignoreCase = true) }
+    fun allows(context: Context, sender: String?): Boolean = allows(get(context), sender)
+
+    /** The one matching rule. Everything that can persist a message routes through here. */
+    fun allows(allowed: Set<String>, sender: String?): Boolean =
+        sender != null && allowed.any { it.equals(sender.trim(), ignoreCase = true) }
 }
 
 object Db {
@@ -49,9 +52,20 @@ private fun sha256(vararg parts: String): String =
     MessageDigest.getInstance("SHA-256").digest(parts.joinToString("\u0000").toByteArray())
         .joinToString("") { "%02x".format(it) }
 
-/** Store a raw message. Idempotent on (sender, body, received_at). Caller has already checked the allowlist. */
-fun storeMessage(db: RaseedDb, sender: String, body: String, receivedAt: Long) {
-    db.raseedQueries.insertMessage(sha256(sender, body, receivedAt.toString()), sender, body, receivedAt)
+/**
+ * Store a raw message. Idempotent on (sender, body, received_at).
+ *
+ * The allowlist check lives HERE, not in the callers: this is the only function that can put a
+ * bank message on disk, so it is the only place the design §2.2 guarantee can actually be enforced.
+ * Callers pass the allowed set rather than a Context so the check stays a pure function of its
+ * arguments.
+ *
+ * @return false if the sender is not allowlisted — nothing was stored, parsed or hashed.
+ */
+fun storeMessage(db: RaseedDb, allowed: Set<String>, sender: String?, body: String, receivedAt: Long): Boolean {
+    if (!Senders.allows(allowed, sender)) return false
+    db.raseedQueries.insertMessage(sha256(sender!!, body, receivedAt.toString()), sender, body, receivedAt)
+    return true
 }
 
 /** The user's correction: persists as a rule and rewrites every row of that merchant. */

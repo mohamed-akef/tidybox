@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,7 +75,7 @@ private fun App() {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted = it.values.all { v -> v } }
 
     fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).raseedQueries.recentTx().executeAsList() } } }
-    remember { reload(); true }
+    LaunchedEffect(Unit) { reload() }
     fun import(sinceMillis: Long) {
         scope.launch {
             val n = withContext(Dispatchers.IO) { backfill(ctx, sinceMillis) { c -> scope.launch { status = ctx.getString(R.string.importing, c) } } }
@@ -148,6 +149,7 @@ private fun MonthHeader(month: String, txs: List<RecentTx>, uncategorized: Strin
     val received = sar.filter { it.type in INCOME }.sumOf { it.amount }
     val byCat = sar.filter { it.type in EXPENSE }.groupBy { it.category ?: uncategorized }
         .mapValues { it.value.sumOf { t -> t.amount } }.entries.sortedByDescending { it.value }.take(4)
+    val fx = txs.size - sar.size
     Column(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 6.dp)) {
         Text(month, style = MaterialTheme.typography.titleLarge)
         Row(Modifier.fillMaxWidth()) {
@@ -155,6 +157,8 @@ private fun MonthHeader(month: String, txs: List<RecentTx>, uncategorized: Strin
             Text("${stringResource(R.string.received)} %.0f".format(received), style = MaterialTheme.typography.titleMedium)
         }
         Text(byCat.joinToString("  ·  ") { "${it.key} %.0f".format(it.value) }, style = MaterialTheme.typography.bodySmall)
+        // A total that silently omits rows is a wrong total. Say so rather than convert (design §7).
+        if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), style = MaterialTheme.typography.bodySmall)
     }
 }
 
