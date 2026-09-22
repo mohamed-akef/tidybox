@@ -1,4 +1,4 @@
-Raseed reads the SMS your bank sends you, turns each one into a transaction, and groups your spending by month and category — entirely on the device.
+Tidy Box reads the SMS your bank sends you, turns each one into a transaction, and groups your spending by month and category — entirely on the device.
 
 No account. No server. No sync. No telemetry. The app does not even request the INTERNET permission, and the build fails if it ever does.
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Raseed</string>
-    <string name="privacy_line">Raseed reads bank SMS on this phone only. Nothing leaves the device.</string>
+    <string name="app_name">Tidy Box</string>
+    <string name="privacy_line">Tidy Box reads bank SMS on this phone only. Nothing leaves the device.</string>
     <string name="allow_sms">Allow SMS access</string>
     <string name="android15_note">On Android 15 and newer, an app installed outside Google Play must first be allowed to ask: open App info → ⋮ → Allow restricted settings, then come back here.</string>
     <string name="import_history">Import history</string>
@@ -30,7 +30,7 @@
     <string name="import_file">Import</string>
     <string name="exported">Exported</string>
     <string name="imported_backup">Imported %1$d messages, %2$d corrections</string>
-    <string name="import_failed">Import failed: wrong passphrase or not a Raseed file</string>
+    <string name="import_failed">Import failed: wrong passphrase or not a Tidy Box file</string>
     <string name="rulepack_title">Rule pack</string>
     <string name="rulepack_help">The merchant dictionary and keywords. Ships with the app; a newer pack file can be loaded here. Your corrections always win.</string>
     <string name="rulepack_current">Active: %1$s v%2$d</string>

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "raseed"
+rootProject.name = "tidybox"
 include(":shared", ":androidApp")

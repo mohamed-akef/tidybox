@@ -47,7 +47,7 @@ jobs:
           APKSIGNER=$(ls -d $ANDROID_HOME/build-tools/*/apksigner | tail -1)
           "$APKSIGNER" sign --ks ks.jks --ks-pass env:KS_PASS \
             --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS \
-            --out "androidApp/build/outputs/apk/release/raseed-$TAG.apk" \
+            --out "androidApp/build/outputs/apk/release/tidybox-$TAG.apk" \
             androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
 
       # Separate step with always(), so a failed signing run does not leave the keystore on disk
@@ -60,18 +60,18 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           cd androidApp/build/outputs/apk/release
-          if [ -f "raseed-$TAG.apk" ]; then
+          if [ -f "tidybox-$TAG.apk" ]; then
             echo "signed APK present"
           else
             echo "::warning::no signing secrets — publishing an UNSIGNED APK, which cannot be installed directly"
-            cp androidApp-release-unsigned.apk "raseed-$TAG-unsigned.apk"
+            cp androidApp-release-unsigned.apk "tidybox-$TAG-unsigned.apk"
           fi
-          sha256sum raseed-*.apk > SHA256SUMS
+          sha256sum tidybox-*.apk > SHA256SUMS
       # Pinned by SHA: this action holds `contents: write` on a repo that publishes installable
       # APKs, and a tag is mutable. SHA is softprops/action-gh-release v2.
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           files: |
-            androidApp/build/outputs/apk/release/raseed-*.apk
+            androidApp/build/outputs/apk/release/tidybox-*.apk
             androidApp/build/outputs/apk/release/SHA256SUMS
           generate_release_notes: true
