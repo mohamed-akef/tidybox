@@ -46,4 +46,6 @@ dependencies {
     implementation("androidx.sqlite:sqlite-ktx:2.5.2")
     implementation("app.cash.sqldelight:coroutines-extensions:2.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    testImplementation(kotlin("test"))
+    testImplementation("junit:junit:4.13.2")
 }

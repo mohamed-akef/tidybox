@@ -25,7 +25,7 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew :androidApp:assembleDebug --no-daemon
+      - run: ./gradlew :androidApp:assembleDebug :androidApp:testDebugUnitTest --no-daemon
       # The privacy claim, checked on every build: the APK must not request INTERNET.
       - run: |
           AAPT=$(ls -d $ANDROID_HOME/build-tools/*/aapt2 | tail -1)

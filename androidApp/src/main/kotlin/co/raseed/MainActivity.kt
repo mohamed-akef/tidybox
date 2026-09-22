@@ -108,7 +108,7 @@ private fun App() {
             actions = { TextButton(onClick = { settings = !settings }) { Text(stringResource(if (settings) R.string.inbox else R.string.settings)) } },
         )
     }) { pad ->
-        if (settings) Settings(Modifier.padding(pad).padding(12.dp), granted, status, ::import)
+        if (settings) Settings(Modifier.padding(pad).padding(12.dp), granted, status, ::import, onReload = ::reload)
         else Inbox(Modifier.padding(pad).padding(12.dp), granted, rows, onAsk = { ask.launch(PERMS) }, onPick = { picking = it })
     }
 }
@@ -141,7 +141,7 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, on
     }
 }
 
-/** Month total in the account currency (SAR); FX purchases count by their settled amount when the bank gave one, else are listed but not summed. */
+/** Month totals in SAR only. FX rows are listed, never converted or summed (design §7). */
 @Composable
 private fun MonthHeader(month: String, txs: List<RecentTx>, uncategorized: String) {
     val sar = txs.filter { it.currency == "SAR" }
@@ -163,13 +163,50 @@ private fun MonthHeader(month: String, txs: List<RecentTx>, uncategorized: Strin
 }
 
 @Composable
-private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImport: (Long) -> Unit) {
+private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImport: (Long) -> Unit, onReload: () -> Unit) {
     val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     var senders by remember { mutableStateOf(Senders.get(ctx).sorted()) }
     var newSender by remember { mutableStateOf("") }
+    var passphrase by remember { mutableStateOf("") }
+    var backupStatus by remember { mutableStateOf("") }
     val now = System.currentTimeMillis()
+    val exportTo = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                val pw = passphrase.toCharArray()
+                try { ctx.contentResolver.openOutputStream(uri)!!.use { it.write(exportEncrypted(Db.get(ctx), pw)) } }
+                finally { pw.fill('\u0000') }
+            }
+            backupStatus = ctx.getString(R.string.exported)
+        }
+    }
+    val importFrom = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            backupStatus = runCatching {
+                withContext(Dispatchers.IO) {
+                    val blob = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
+                    val pw = passphrase.toCharArray()
+                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), blob, pw) } finally { pw.fill('\u0000') }
+                }
+            }.map { (m, r) -> ctx.getString(R.string.imported_backup, m, r) }.getOrElse { ctx.getString(R.string.import_failed) }
+            onReload()
+        }
+    }
     Column(modifier) {
-        Text(stringResource(R.string.import_history), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.backup_help), style = MaterialTheme.typography.bodySmall)
+        OutlinedTextField(passphrase, { passphrase = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.passphrase)) }, singleLine = true,
+            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
+        Row {
+            TextButton(enabled = passphrase.length >= 8, onClick = { exportTo.launch("raseed-backup.rsd") }) { Text(stringResource(R.string.export)) }
+            TextButton(enabled = passphrase.length >= 8, onClick = { importFrom.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.import_file)) }
+            Text(backupStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+        }
+
+        Text(stringResource(R.string.import_history), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
         Row {
             for ((label, since) in listOf(R.string.range_1m to now - 30 * DAY, R.string.range_3m to now - 90 * DAY, R.string.range_12m to now - 365 * DAY, R.string.range_all to 0L)) {
                 TextButton(enabled = granted, onClick = { onImport(since) }) { Text(stringResource(label)) }
