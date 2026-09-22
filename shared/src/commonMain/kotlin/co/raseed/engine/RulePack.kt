@@ -8,6 +8,10 @@ import kotlinx.serialization.json.Json
  * compiled into [RulePack.bundled] at build time. An updated pack can be loaded from JSON at
  * runtime and handed to [categorize]; the app falls back to the bundled one.
  *
+ * ponytail: BUNDLED_RULEPACK_JSON is a `const val`, so the bundled pack is capped by the JVM's
+ * 64 KB constant-pool limit. merchants.json is ~6 KB today; if community contributions approach
+ * that ceiling, move it to a platform resource read at startup.
+ *
  * ponytail: extraction templates are still Kotlin (Extract.kt) — they are per-bank regex that
  * changed on every spike pass and are not yet stable enough to be data. Download + Ed25519
  * verification is the next step of D3; nothing here opens a socket.
@@ -49,9 +53,14 @@ data class RulePack(
         private val json = Json { ignoreUnknownKeys = true }
 
         /** Parses a pack. Throws on malformed JSON or missing fields; the caller decides whether to fall back. */
-        fun parse(text: String): RulePack = json.decodeFromString<RulePack>(text).also {
-            require(it.version >= 1) { "unsupported rule pack version ${it.version}" }
-            require(it.merchants.keys.all { c -> c in it.categories }) { "merchant category not declared" }
+        fun parse(text: String): RulePack = json.decodeFromString<RulePack>(text).also { p ->
+            require(p.version >= 1) { "unsupported rule pack version ${p.version}" }
+            // Every map keyed by category is checked, not just `merchants` — a keyword rule can emit
+            // a category just as a dictionary entry can, and an undeclared one would be invisible to
+            // knownCategories() and so unpickable in the correction dialog.
+            val undeclared = (p.merchants.keys + p.keywords.latin.keys + p.keywords.latinPhrases.keys +
+                p.keywords.arabic.keys) - p.categories.toSet()
+            require(undeclared.isEmpty()) { "categories not declared in `categories`: $undeclared" }
         }
 
         /** The pack compiled in from rulepacks/merchants.json. */
