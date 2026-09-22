@@ -134,7 +134,7 @@ is a signed download. This is the constraint every other decision is checked aga
 
 | # | Question | Default if unanswered |
 |---|---|---|
-| O1 | **Project name.** `Raseed` رصيد (balance), `Kashf` كشف (statement), `Masareef` مصاريف (expenses), `Wasl` وصل (receipt), or something else. | `raseed` — a placeholder. GitHub renames preserve redirects, so this is cheap to change. |
+| O1 | **Project name.** | **Decided 2026-09-22: Tidy Box** (`app.tidybox`). English, about the inbox rather than the money, so it still fits when non-payment channels arrive. `Raseed` was the working title through v0.1.0. |
 | O2 | **License.** GPLv3 / AGPLv3 / MIT / Apache-2.0. Affects whether a closed fork is possible. | **Decided 2026-09-22: GPL-3.0-or-later**, at F-Droid submission time. |
 | O3 | **Repo visibility.** Currently **private**. | **Decided 2026-09-22: public**, required for F-Droid. |
 | O5 | **Rule-pack download.** D3 is half built: packs are JSON, bundled, and loadable from a file — but the app has no `INTERNET` permission and CI enforces that. Adding the GitHub Releases download means adding `INTERNET` and the Ed25519 check. Alternative: keep zero network forever and ship packs only with app releases + manual file import. | Ship packs with releases; decide on download when there is a pack worth downloading. |

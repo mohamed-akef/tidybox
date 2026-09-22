@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">رصيد</string>
-    <string name="privacy_line">رصيد يقرأ رسائل البنك على هذا الجهاز فقط. لا شيء يغادر جهازك.</string>
+    <string name="app_name">Tidy Box</string>
+    <string name="privacy_line">Tidy Box يقرأ رسائل البنك على هذا الجهاز فقط. لا شيء يغادر جهازك.</string>
     <string name="allow_sms">السماح بقراءة الرسائل</string>
     <string name="android15_note">على أندرويد 15 وما بعده، التطبيق المثبّت من خارج Google Play يحتاج إذنًا أولًا: افتح معلومات التطبيق ← ⋮ ← السماح بالإعدادات المقيّدة، ثم عد إلى هنا.</string>
     <string name="import_history">استيراد الرسائل السابقة</string>

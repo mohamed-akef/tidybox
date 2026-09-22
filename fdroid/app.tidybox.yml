@@ -1,0 +1,27 @@
+# Draft of the fdroiddata metadata file (metadata/app.tidybox.yml in gitlab.com/fdroid/fdroiddata).
+# Kept here so the submission is reviewable in this repo first.
+Categories:
+  - Money
+License: GPL-3.0-or-later
+SourceCode: https://github.com/mohamed-akef/tidybox
+IssueTracker: https://github.com/mohamed-akef/tidybox/issues
+Changelog: https://github.com/mohamed-akef/tidybox/releases
+
+AutoName: Tidy Box
+
+RepoType: git
+Repo: https://github.com/mohamed-akef/tidybox.git
+
+Builds:
+  - versionName: 0.1.1
+    versionCode: 2
+    commit: v0.1.1
+    subdir: androidApp
+    gradle:
+      - yes
+    output: build/outputs/apk/release/androidApp-release-unsigned.apk
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9.]+$
+CurrentVersion: 0.1.1
+CurrentVersionCode: 2

@@ -6,10 +6,10 @@ plugins {
 }
 
 android {
-    namespace = "co.raseed"
+    namespace = "app.tidybox"
     compileSdk = 37
     defaultConfig {
-        applicationId = "co.raseed"
+        applicationId = "app.tidybox"
         minSdk = 26
         targetSdk = 37
         versionCode = 2
@@ -29,7 +29,7 @@ kotlin { jvmToolchain(17) }
 
 sqldelight {
     databases {
-        create("RaseedDb") { packageName.set("co.raseed.db") }
+        create("TidyBoxDb") { packageName.set("app.tidybox.db") }
     }
 }
 

@@ -1,10 +1,8 @@
-# Raseed — رصيد
-
-> **Working title.** The name is a placeholder — see [open decisions](docs/decisions.md#open-decisions).
+# Tidy Box
 
 A privacy-first inbox for the messages your bank sends you.
 
-Raseed reads bank SMS on your phone, turns them into transactions, and categorizes your
+Tidy Box reads bank SMS on your phone, turns them into transactions, and categorizes your
 spending — **entirely on the device**. No account. No server. No sync. No telemetry.
 Your financial history never leaves your phone, because there is nowhere for it to go.
 
@@ -30,7 +28,7 @@ your salary, your rent, your card numbers and every merchant you have ever paid 
 through someone else's infrastructure.
 
 The parsing does not need a server. Everything these apps do can run on the phone.
-Raseed is the same idea with the server deleted, and the source open so the claim is
+Tidy Box is the same idea with the server deleted, and the source open so the claim is
 checkable rather than promised.
 
 ## The privacy guarantee

@@ -10,7 +10,7 @@ plugins {
 kotlin {
     jvm()
     androidLibrary {
-        namespace = "co.raseed.engine"
+        namespace = "app.tidybox.engine"
         compileSdk = 37
         minSdk = 26
     }
@@ -34,10 +34,10 @@ val generateBundledRulePack by tasks.registering {
     inputs.file(rulepackSrc)
     outputs.dir(generatedDir)
     doLast {
-        val out = generatedDir.get().file("co/raseed/engine/BundledRulePack.kt").asFile
+        val out = generatedDir.get().file("co/tidybox/engine/BundledRulePack.kt").asFile
         out.parentFile.mkdirs()
         val body = rulepackSrc.readText().replace("$", "\${'$'}")
-        out.writeText("package co.raseed.engine\n\n// GENERATED from rulepacks/merchants.json — edit that file, not this one.\ninternal const val BUNDLED_RULEPACK_JSON: String = \"\"\"$body\"\"\"\n")
+        out.writeText("package app.tidybox.engine\n\n// GENERATED from rulepacks/merchants.json — edit that file, not this one.\ninternal const val BUNDLED_RULEPACK_JSON: String = \"\"\"$body\"\"\"\n")
     }
 }
 kotlin.sourceSets.commonMain { kotlin.srcDir(generateBundledRulePack) }
