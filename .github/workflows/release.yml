@@ -2,6 +2,9 @@ name: release
 on:
   push:
     tags: ["v*"]
+  # Dispatched by auto-tag.yml with `--ref v<version>`: a tag pushed by GITHUB_TOKEN does not
+  # emit a push event, so the chain is dispatch → this → fdroid-repo.
+  workflow_dispatch:
 
 # Builds the release APK and attaches it to a GitHub Release for the tag.
 # Unsigned until a signing key exists: add secrets RASEED_KEYSTORE_B64, RASEED_KEYSTORE_PASSWORD,

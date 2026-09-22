@@ -1,0 +1,30 @@
+name: auto-tag
+on:
+  push:
+    branches: [main]
+    paths: [androidApp/build.gradle.kts]
+
+# Release = bump versionName/versionCode in androidApp/build.gradle.kts and merge to main.
+# If tag v<versionName> does not exist yet it is created here and release.yml is dispatched on
+# it (a token-pushed tag would not trigger release.yml on its own).
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: tag and release when the version is new
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' androidApp/build.gradle.kts)
+          test -n "$v" || { echo "no versionName found"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/v$v" >/dev/null; then
+            echo "v$v already exists — nothing to do"; exit 0
+          fi
+          git -c user.name=github-actions -c user.email=github-actions@github.com tag -a "v$v" -m "v$v"
+          git push origin "v$v"
+          gh workflow run release.yml --ref "v$v"
+          echo "tagged v$v and dispatched release"
