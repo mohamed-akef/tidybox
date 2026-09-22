@@ -51,6 +51,13 @@ That is onboarding friction, not a blocker — and it must be verified on real d
 ([spike S4](spike/README.md#s3)) and written into the first-run screen, not discovered
 by users.
 
+**Verified on a device, 2026-09-22 (S4, partial).** Google Play Protect's enhanced fraud
+protection **hard-blocks** installing a downloaded APK that declares `RECEIVE_SMS` /
+`READ_SMS` — "App blocked to protect your device", no *install anyway*. Workarounds: turn
+Play Protect scanning off for the install, `adb install`, or install through a store client
+(F-Droid) that uses the session installer. This is why the project is going to the official
+F-Droid catalogue rather than GitHub-APK-first.
+
 **Rejected alternative:** a Play build using `NotificationListenerService` to read bank
 *notifications* instead of SMS. Still restricted, still needs justification, and
 Android 15+ redacts notifications it classifies as OTP-bearing from untrusted listeners —
@@ -128,8 +135,8 @@ is a signed download. This is the constraint every other decision is checked aga
 | # | Question | Default if unanswered |
 |---|---|---|
 | O1 | **Project name.** `Raseed` رصيد (balance), `Kashf` كشف (statement), `Masareef` مصاريف (expenses), `Wasl` وصل (receipt), or something else. | `raseed` — a placeholder. GitHub renames preserve redirects, so this is cheap to change. |
-| O2 | **License.** GPLv3 / AGPLv3 / MIT / Apache-2.0. Affects whether a closed fork is possible. | None chosen. Deliberately left to the owner — this is a legal choice, not a technical one. |
-| O3 | **Repo visibility.** Currently **private**. | Stays private until the design is settled. Private→public is one click; the reverse is not. |
+| O2 | **License.** GPLv3 / AGPLv3 / MIT / Apache-2.0. Affects whether a closed fork is possible. | **Decided 2026-09-22: GPL-3.0-or-later**, at F-Droid submission time. |
+| O3 | **Repo visibility.** Currently **private**. | **Decided 2026-09-22: public**, required for F-Droid. |
 | O5 | **Rule-pack download.** D3 is half built: packs are JSON, bundled, and loadable from a file — but the app has no `INTERNET` permission and CI enforces that. Adding the GitHub Releases download means adding `INTERNET` and the Ed25519 check. Alternative: keep zero network forever and ship packs only with app releases + manual file import. | Ship packs with releases; decide on download when there is a pack worth downloading. |
 | O4 | **Discard raw SMS after parsing?** Keeping the raw text lets a rule-pack update re-derive old transactions and lets the UI explain *why* something was categorized. Deleting it is stronger privacy. | Keep, encrypted, with a user-facing setting to discard. **Built:** Settings → Privacy → *Keep raw messages* (default on); off erases stored text immediately and after every parse. |
 
