@@ -49,4 +49,6 @@
     <string name="unreadable_copy">نسخ 20 رسالة غير مقروءة</string>
     <string name="unreadable_copied">تم النسخ. الصقها في github.com/mohamed-akef/tidybox/issues</string>
     <string name="reparsed">أُعيدت قراءة الرسائل المخزّنة: %1$d عملية جديدة</string>
+    <string name="today">اليوم</string>
+    <string name="yesterday">أمس</string>
 </resources>

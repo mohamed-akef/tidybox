@@ -83,6 +83,11 @@ object EngineVersion {
     }
 }
 
+private fun plausible(d: app.tidybox.engine.LocalDateTime, receivedAt: Long): Boolean = runCatching {
+    val at = java.time.LocalDateTime.of(d.year, d.month, d.day, d.hour, d.minute).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+    at <= receivedAt + 86_400_000L && at >= receivedAt - 366L * 86_400_000L
+}.getOrDefault(false)
+
 /** Whether the one-time automatic history import has run. */
 object Imported {
     private const val PREFS = "tidybox-privacy"
@@ -172,7 +177,8 @@ fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
                 val c = categorize(tx, overrides, pack)
                 db.tidyBoxQueries.insertTx(
                     m.id, tx.type.name, tx.amount, tx.currency, tx.merchant, tx.merchant?.let(::normalizeMerchant), tx.cardLast4,
-                    tx.occurredAt?.let { "%04d-%02d-%02d %02d:%02d".format(it.year, it.month, it.day, it.hour, it.minute) },
+                    // A bank date after the SMS arrived is a misread (d/m/yy vs yy/m/d); fall back to received_at.
+                    tx.occurredAt?.takeIf { plausible(it, m.received_at) }?.let { "%04d-%02d-%02d %02d:%02d".format(it.year, it.month, it.day, it.hour, it.minute) },
                     c.category, c.reason.name,
                 )
                 found++
