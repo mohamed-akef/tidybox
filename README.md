@@ -103,3 +103,7 @@ for the APK (needs an Android SDK; `local.properties` → `sdk.dir`).
 ## License
 
 [GPL-3.0-or-later](LICENSE). Chosen 2026-09-22 for the F-Droid submission (O2).
+
+## Credits
+
+Interface font: [Geist](https://github.com/vercel/geist-font) by Vercel, SIL Open Font License 1.1 (`androidApp/src/main/assets/geist-OFL.txt`). Bundled in the APK; nothing is downloaded.

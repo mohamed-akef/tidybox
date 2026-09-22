@@ -5,6 +5,16 @@ import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -135,8 +145,8 @@ private val Ink = Color(0xFF16201B)
 private val Paper = Color(0xFFF6F7F5)
 private val PaperRaised = Color(0xFFFFFFFF)
 private val Mist = Color(0xFFE6EAE7)
-private val Night = Color(0xFF000000)
-private val NightRaised = Color(0xFF15191A)
+private val Night = Color(0xFF0C100F)
+private val NightRaised = Color(0xFF161B1A)
 private val NightMist = Color(0xFF232A2B)
 
 private val LightScheme = lightColorScheme(
@@ -157,13 +167,28 @@ private val DarkScheme = darkColorScheme(
 /** Money is set in tabular figures so columns of amounts line up. */
 private val TextStyle.tabular get() = copy(fontFeatureSettings = "tnum")
 
+// Geist (OFL, assets/geist-OFL.txt), bundled: no font download, the app has no network.
+// Arabic glyphs fall back to the system font per character.
+private val Geist = FontFamily(
+    Font(R.font.geist_regular, FontWeight.Normal),
+    Font(R.font.geist_medium, FontWeight.Medium),
+    Font(R.font.geist_semibold, FontWeight.SemiBold),
+)
+
 @Composable
 private fun TidyTheme(content: @Composable () -> Unit) {
     val base = MaterialTheme.typography
+    fun TextStyle.g(w: FontWeight = FontWeight.Normal, track: Float? = null) =
+        copy(fontFamily = Geist, fontWeight = w, letterSpacing = track?.sp ?: letterSpacing)
     val typography = base.copy(
-        displaySmall = base.displaySmall.copy(fontWeight = FontWeight.Medium, letterSpacing = (-0.5).sp),
-        headlineSmall = base.headlineSmall.copy(fontWeight = FontWeight.Medium),
-        titleLarge = base.titleLarge.copy(fontWeight = FontWeight.Medium),
+        displayMedium = base.displayMedium.g(FontWeight.SemiBold, -1.5f),
+        displaySmall = base.displaySmall.g(FontWeight.SemiBold, -1.2f).copy(lineHeight = 40.sp),
+        headlineSmall = base.headlineSmall.g(FontWeight.Medium, -0.4f),
+        titleLarge = base.titleLarge.g(FontWeight.SemiBold, -0.3f),
+        titleMedium = base.titleMedium.g(FontWeight.Medium),
+        titleSmall = base.titleSmall.g(FontWeight.SemiBold),
+        bodyLarge = base.bodyLarge.g(FontWeight.Medium), bodyMedium = base.bodyMedium.g(), bodySmall = base.bodySmall.g(),
+        labelLarge = base.labelLarge.g(FontWeight.Medium), labelMedium = base.labelMedium.g(FontWeight.Medium), labelSmall = base.labelSmall.g(FontWeight.Medium, 0.3f),
     )
     MaterialTheme(colorScheme = if (isSystemInDarkTheme()) DarkScheme else LightScheme, typography = typography, content = content)
 }
@@ -194,7 +219,8 @@ private fun App() {
     var refreshing by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
 
-    fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).tidyBoxQueries.recentTx().executeAsList() } } }
+    var loaded by remember { mutableStateOf(false) }
+    fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).tidyBoxQueries.recentTx().executeAsList() }; loaded = true } }
     fun import(sinceMillis: Long) {
         scope.launch {
             refreshing = true
@@ -236,7 +262,7 @@ private fun App() {
         if (settings) Settings(Modifier.padding(pad).padding(horizontal = 20.dp), granted, status, ::import, onReload = ::reload)
         // Pull down = read the whole SMS inbox again and re-run the engine on anything unread.
         else PullToRefreshBox(isRefreshing = refreshing, onRefresh = { if (granted && !refreshing) import(0) }, modifier = Modifier.padding(pad)) {
-            Inbox(Modifier.padding(horizontal = 16.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
+            Inbox(Modifier.padding(horizontal = 16.dp), granted, loaded, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
         }
     }
 }
@@ -257,7 +283,7 @@ private fun RecentTx.time(): String = occurred_at?.drop(11)?.take(5)
     ?: Instant.ofEpochMilli(received_at).atZone(ZoneId.systemDefault()).toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
 
 @Composable
-private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, status: String, seen: List<String>, onAsk: () -> Unit, onPick: (RecentTx) -> Unit, onAllow: (String) -> Unit) {
+private fun Inbox(modifier: Modifier, granted: Boolean, loaded: Boolean, rows: List<RecentTx>, status: String, seen: List<String>, onAsk: () -> Unit, onPick: (RecentTx) -> Unit, onAllow: (String) -> Unit) {
     val uncategorized = stringResource(R.string.uncategorized)
     val today = LocalDate.now()
     val dayFmt = DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.getDefault())
@@ -283,7 +309,8 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, st
                 }
             }
         }
-        if (rows.isEmpty()) item {
+        // Nothing until the first read finishes, so "no transactions" never flashes over real data.
+        if (loaded && rows.isEmpty()) item {
             Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("📭", style = MaterialTheme.typography.displayMedium)
                 Text(stringResource(R.string.empty), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
@@ -310,9 +337,23 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, st
                         today.minusDays(1) -> stringResource(R.string.yesterday)
                         else -> day.format(dayFmt)
                     }
-                    Text(label, Modifier.padding(start = 4.dp, top = 20.dp, bottom = 6.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column {
+                        Row(Modifier.padding(start = 4.dp, end = 4.dp, top = 24.dp, bottom = 8.dp)) {
+                            Text(label, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            val daySpent = dayTxs.filter { it.type in EXPENSE && it.currency == mainCurrency }.sumOf { it.amount }
+                            if (daySpent > 0) Text("−" + money(daySpent), style = MaterialTheme.typography.labelLarge.tabular, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        // One surface per day, rows divided inside it: a ledger page, not a stack of cards.
+                        Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
+                            Column {
+                                dayTxs.forEachIndexed { i, t ->
+                                    if (i > 0) HorizontalDivider(Modifier.padding(start = 72.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                                    TxRow(t, uncategorized, mainCurrency, onPick)
+                                }
+                            }
+                        }
+                    }
                 }
-                items(dayTxs, key = { it.id }) { t -> TxRow(t, uncategorized, mainCurrency, onPick) }
             }
         }
     }
@@ -328,11 +369,14 @@ private fun TxRow(t: RecentTx, uncategorized: String, mainCurrency: String?, onP
         in INCOME -> "+" to MaterialTheme.colorScheme.tertiary
         else -> "" to MaterialTheme.colorScheme.onSurface
     }
+    val press = remember { MutableInteractionSource() }
+    val pressed by press.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (pressed) 0.98f else 1f, spring(stiffness = Spring.StiffnessMedium), label = "press")
     ListItem(
-        modifier = Modifier.padding(vertical = 2.dp).clip(RoundedCornerShape(16.dp)).clickable { onPick(t) },
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale }.clickable(interactionSource = press, indication = LocalIndication.current) { onPick(t) },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         leadingContent = {
-            Box(Modifier.size(44.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(tint.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
                 Text(CATEGORY_EMOJI[t.category] ?: name.first().uppercase(), style = MaterialTheme.typography.titleMedium, color = tint)
             }
         },
@@ -376,14 +420,14 @@ private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncat
     }
     Column(Modifier.fillMaxWidth().padding(top = 4.dp).then(swipe)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, Modifier.weight(1f).padding(start = 4.dp), style = MaterialTheme.typography.titleLarge)
             IconButton(onClick = onOlder, enabled = hasOlder) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.older_month)) }
-            Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
             IconButton(onClick = onNewer, enabled = hasNewer) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.newer_month)) }
         }
         Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.spent), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("−${money(spent)}", style = MaterialTheme.typography.displaySmall.tabular, color = MaterialTheme.colorScheme.error, maxLines = 1)
+                Text("−${money(spent)}", style = MaterialTheme.typography.displayMedium.tabular.copy(fontSize = 44.sp, lineHeight = 48.sp), color = MaterialTheme.colorScheme.error, maxLines = 1)
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(stringResource(R.string.received), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -398,7 +442,7 @@ private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncat
             }
             FlowRow(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 for ((cat, sum) in byCat) Row(
-                    Modifier.clip(RoundedCornerShape(50))
+                    Modifier.clip(RoundedCornerShape(8.dp))
                         .background(if (filter == (cat ?: "")) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer)
                         .clickable { onFilter(cat ?: "") }
                         .padding(horizontal = 10.dp, vertical = 5.dp),
@@ -506,6 +550,7 @@ private fun openIssue(ctx: android.content.Context, title: String, body: String,
 private fun Section(title: String) =
     Text(title, Modifier.padding(top = 28.dp, bottom = 4.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImport: (Long) -> Unit, onReload: () -> Unit) {
     val ctx = LocalContext.current
@@ -593,9 +638,9 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         if (!keepRaw) Text(stringResource(R.string.backup_needs_raw), style = MaterialTheme.typography.bodySmall)
 
         Section(stringResource(R.string.import_history))
-        Row {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for ((label, since) in listOf(R.string.range_1m to now - 30 * DAY, R.string.range_3m to now - 90 * DAY, R.string.range_12m to now - 365 * DAY, R.string.range_all to 0L)) {
-                TextButton(enabled = granted, onClick = { onImport(since) }) { Text(stringResource(label)) }
+                OutlinedButton(enabled = granted, onClick = { onImport(since) }) { Text(stringResource(label)) }
             }
         }
         Text(status, style = MaterialTheme.typography.bodySmall)
