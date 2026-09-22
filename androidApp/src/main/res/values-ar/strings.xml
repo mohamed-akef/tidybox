@@ -67,4 +67,5 @@
     <string name="open_issue">فتح بلاغ على GitHub</string>
     <string name="issue_unreadable_title">رسائل بنكية غير مقروءة</string>
     <string name="issue_uncategorized_title">متاجر غير مصنّفة (%1$d)</string>
+    <string name="up_to_date">لا جديد. لا توجد رسائل بنكية جديدة.</string>
 </resources>

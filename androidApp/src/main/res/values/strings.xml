@@ -67,4 +67,5 @@
     <string name="open_issue">Open GitHub issue</string>
     <string name="issue_unreadable_title">Unreadable bank messages</string>
     <string name="issue_uncategorized_title">Uncategorized merchants (%1$d)</string>
+    <string name="up_to_date">Up to date. No new bank messages.</string>
 </resources>
