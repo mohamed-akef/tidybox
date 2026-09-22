@@ -89,7 +89,16 @@ UPDATE tx SET hidden = ? WHERE id = ?;
 -- code; this repairs rows stored before the guard existed.
 clearImplausibleDates:
 UPDATE tx SET occurred_at = NULL
-WHERE occurred_at > strftime('%Y-%m-%d %H:%M', (SELECT received_at / 1000 + 86400 FROM message WHERE message.id = tx.message_id), 'unixepoch');
+WHERE occurred_at > strftime('%Y-%m-%d %H:%M', (SELECT received_at / 1000 + 86400 FROM message WHERE message.id = tx.message_id), 'unixepoch')
+   OR occurred_at < strftime('%Y-%m-%d %H:%M', (SELECT received_at / 1000 - 31622400 FROM message WHERE message.id = tx.message_id), 'unixepoch');
+
+-- Rows the engine may now read better. User-corrected rows (OVERRIDE) are left alone.
+txForRefresh:
+SELECT tx.id, message.body, message.received_at FROM tx JOIN message ON message.id = tx.message_id
+WHERE message.body != '' AND tx.category_reason != 'OVERRIDE';
+
+refreshTx:
+UPDATE tx SET merchant = ?, merchant_key = ?, card_last4 = ?, occurred_at = ? WHERE id = ?;
 
 -- Engine changed: give every raw message that never became a transaction another pass.
 reopenUnread:
