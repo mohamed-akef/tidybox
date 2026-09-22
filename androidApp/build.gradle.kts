@@ -12,8 +12,8 @@ android {
         applicationId = "app.tidybox"
         minSdk = 26
         targetSdk = 37
-        versionCode = 10
-        versionName = "0.1.9"
+        versionCode = 13
+        versionName = "0.1.12"
     }
     buildFeatures { compose = true }
     compileOptions {

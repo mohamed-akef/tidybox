@@ -3,6 +3,7 @@ package app.tidybox
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -63,6 +64,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -76,7 +80,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -182,13 +191,18 @@ private fun App() {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted = it.values.all { v -> v } }
 
     var seen by remember { mutableStateOf(emptyList<String>()) }
+    var refreshing by remember { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
 
     fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).tidyBoxQueries.recentTx().executeAsList() } } }
     fun import(sinceMillis: Long) {
         scope.launch {
+            refreshing = true
             val (n, found) = withContext(Dispatchers.IO) { backfill(ctx, sinceMillis) { c -> scope.launch { status = ctx.getString(R.string.importing, c) } } }
             status = ctx.getString(R.string.imported, n, found)
+            refreshing = false
             reload()
+            if (rows.isNotEmpty() || n > 0) snackbar.showSnackbar(status)
             // Nothing landed: show the sender IDs on the phone so one tap fixes the allowlist.
             seen = if (found == 0) withContext(Dispatchers.IO) { seenSenders(ctx) } else emptyList()
         }
@@ -211,7 +225,7 @@ private fun App() {
     }
 
     BackHandler(enabled = settings) { settings = false }
-    Scaffold(topBar = {
+    Scaffold(snackbarHost = { SnackbarHost(snackbar) }, topBar = {
         TopAppBar(
             title = { Text(stringResource(if (settings) R.string.settings else R.string.app_name), style = MaterialTheme.typography.titleLarge) },
             navigationIcon = { if (settings) IconButton(onClick = { settings = false }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.inbox)) } },
@@ -220,7 +234,10 @@ private fun App() {
         )
     }) { pad ->
         if (settings) Settings(Modifier.padding(pad).padding(horizontal = 20.dp), granted, status, ::import, onReload = ::reload)
-        else Inbox(Modifier.padding(pad).padding(horizontal = 16.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
+        // Pull down = read the whole SMS inbox again and re-run the engine on anything unread.
+        else PullToRefreshBox(isRefreshing = refreshing, onRefresh = { if (granted && !refreshing) import(0) }, modifier = Modifier.padding(pad)) {
+            Inbox(Modifier.padding(horizontal = 16.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
+        }
     }
 }
 
@@ -346,7 +363,18 @@ private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncat
         .mapValues { it.value.sumOf { t -> t.amount } }.entries.sortedByDescending { it.value }
     val fx = txs.size - inMain.size
     val title = runCatching { YearMonth.parse(month).format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())) }.getOrDefault(month)
-    Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val threshold = with(LocalDensity.current) { 72.dp.toPx() }
+    // Swipe the summary sideways to move between months (mirrored in RTL).
+    val swipe = Modifier.pointerInput(hasNewer, hasOlder, rtl) {
+        var total = 0f
+        detectHorizontalDragGestures(onDragStart = { total = 0f }, onDragEnd = {
+            val towardsNewer = if (rtl) total > threshold else total < -threshold
+            val towardsOlder = if (rtl) total < -threshold else total > threshold
+            if (towardsNewer && hasNewer) onNewer() else if (towardsOlder && hasOlder) onOlder()
+        }) { _, dx -> total += dx }
+    }
+    Column(Modifier.fillMaxWidth().padding(top = 4.dp).then(swipe)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onOlder, enabled = hasOlder) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.older_month)) }
             Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
@@ -386,12 +414,12 @@ private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncat
         if (filter != null) Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.showing_only, if (filter == "") uncategorized else filter), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
             if (filter == "") TextButton(onClick = {
-                // Merchant names and counts only — no amounts, no dates — for a GitHub issue that
-                // grows the shared dictionary. The user sees the text in the share sheet first.
-                val text = ctx.getString(R.string.share_uncategorized_intro) + "\n\n" +
-                    Db.get(ctx).tidyBoxQueries.uncategorizedMerchants().executeAsList().joinToString("\n") { "${it.merchant} ×${it.n}" }
-                ctx.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), null))
-            }) { Text(stringResource(R.string.share_uncategorized)) }
+                // Merchant names and counts only — no amounts, no dates — straight into a GitHub
+                // issue that grows the shared dictionary. The user sees the text before sending.
+                val names = Db.get(ctx).tidyBoxQueries.uncategorizedMerchants().executeAsList()
+                openIssue(ctx, ctx.getString(R.string.issue_uncategorized_title, names.size),
+                    ctx.getString(R.string.share_uncategorized_intro) + "\n\n" + names.joinToString("\n") { "- ${it.merchant} ×${it.n}" }, "dictionary")
+            }) { Text(stringResource(R.string.open_issue)) }
             TextButton(onClick = { onFilter(filter) }) { Text(stringResource(R.string.clear_filter)) }
         }
         HorizontalDivider(Modifier.padding(top = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
@@ -461,6 +489,17 @@ private fun TxSheet(txId: Long, onDismiss: () -> Unit, onChanged: () -> Unit) {
             }
         }
     }
+}
+
+/**
+ * Opens GitHub's new-issue page in the browser with title and body filled in. The app itself
+ * still opens no socket: the browser does, on an explicit tap, with text the user has seen.
+ * URLs are capped so GitHub does not drop the body (it truncates around 8 KB).
+ */
+private fun openIssue(ctx: android.content.Context, title: String, body: String, label: String) {
+    val url = "https://github.com/mohamed-akef/tidybox/issues/new?labels=" + Uri.encode(label) +
+        "&title=" + Uri.encode(title) + "&body=" + Uri.encode(body.take(6000))
+    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
 }
 
 @Composable
@@ -563,12 +602,20 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         val clipboard = LocalClipboardManager.current
         var copied by remember { mutableStateOf(false) }
         Text(stringResource(R.string.unreadable_help), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall)
-        TextButton(onClick = {
-            scope.launch {
-                val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx)) }
-                clipboard.setText(AnnotatedString(sample)); copied = sample.isNotEmpty()
-            }
-        }) { Text(stringResource(if (copied) R.string.unreadable_copied else R.string.unreadable_copy)) }
+        Row {
+            TextButton(onClick = {
+                scope.launch {
+                    val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx)) }
+                    clipboard.setText(AnnotatedString(sample)); copied = sample.isNotEmpty()
+                }
+            }) { Text(stringResource(if (copied) R.string.copied else R.string.unreadable_copy)) }
+            TextButton(onClick = {
+                scope.launch {
+                    val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx)) }
+                    openIssue(ctx, ctx.getString(R.string.issue_unreadable_title), "**Bank / sender ID:** \n\n**Country and language:** \n\n```\n$sample\n```", "templates")
+                }
+            }) { Text(stringResource(R.string.open_issue)) }
+        }
 
         Section(stringResource(R.string.senders_title))
         Text(stringResource(R.string.senders_help), style = MaterialTheme.typography.bodySmall)
