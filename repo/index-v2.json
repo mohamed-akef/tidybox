@@ -1,0 +1,756 @@
+{
+  "repo": {
+    "name": {
+      "en-US": "Tidy Box"
+    },
+    "description": {
+      "en-US": "Bank SMS to categorized spending, entirely on your phone. Official repo for Tidy Box."
+    },
+    "icon": {
+      "en-US": {
+        "name": "/icons/icon.png",
+        "sha256": "e300197362eb73531c887c6f9c24b015d2b5ab0e4b87b19b8bb082e6573dce26",
+        "size": 845
+      }
+    },
+    "address": "https://mohamed-akef.github.io/tidybox/repo",
+    "timestamp": 1790119597000,
+    "categories": {
+      "Money": {
+        "name": {
+          "en-US": "Money"
+        }
+      }
+    }
+  },
+  "packages": {
+    "app.tidybox": {
+      "metadata": {
+        "added": 1790119575000,
+        "categories": [
+          "Money"
+        ],
+        "changelog": "https://github.com/mohamed-akef/tidybox/releases",
+        "issueTracker": "https://github.com/mohamed-akef/tidybox/issues",
+        "lastUpdated": 1790119588000,
+        "license": "GPL-3.0-or-later",
+        "sourceCode": "https://github.com/mohamed-akef/tidybox",
+        "name": {
+          "ar": "Tidy Box",
+          "en-US": "Tidy Box"
+        },
+        "summary": {
+          "ar": "رسائل البنك إلى مصروفات مصنّفة، على جهازك فقط. بلا خادم، بلا حساب.",
+          "en-US": "Bank SMS to categorized spending, entirely on your phone. No server, no account."
+        },
+        "description": {
+          "ar": "Tidy Box يقرأ رسائل البنك القصيرة، ويحوّل كل رسالة إلى عملية، ويجمّع مصروفاتك حسب الشهر والتصنيف — كل ذلك على الجهاز.\n\nبلا حساب. بلا خادم. بلا مزامنة. بلا تتبّع. التطبيق لا يطلب إذن الإنترنت أصلًا، ويفشل البناء إن طلبه يومًا.\n\n• تُقرأ الرسائل من معرّفات المرسلين التي تسمح بها فقط؛ كل ما عداها يُهمل قبل تخزينه.\n• التحليل مطابقة قوالب على تسميات البنك نفسها (مبلغ:، لدى:، بطاقة:) — بلا سحابة، بلا نموذج ذكاء اصطناعي.\n• التصنيف من قاموس متاجر وتصحيحاتك أنت، وتبقى محفوظة. وعند الشك يقول «غير مصنّف» بدل التخمين.\n• قاعدة البيانات مشفّرة بـ SQLCipher، والمفتاح في Android Keystore، ومستثناة من النسخ الاحتياطي للنظام.\n• ملف نسخ احتياطي مشفّر تحتفظ به أينما شئت.\n• عربي وإنجليزي.\n\nالبنوك السعودية أولًا (الراجحي، الإنماء، الأهلي، ساب، البلاد، STC Pay…). القوالب وقاموس المتاجر بيانات مفتوحة — أضف بنكك.\n",
+          "en-US": "Tidy Box reads the SMS your bank sends you, turns each one into a transaction, and groups your spending by month and category — entirely on the device.\n\nNo account. No server. No sync. No telemetry. The app does not even request the INTERNET permission, and the build fails if it ever does.\n\n• Only sender IDs you allow are ever read; everything else is dropped before it is stored.\n• Parsing is template matching over the bank's own labels (مبلغ:, لدى:, بطاقة:) — no cloud, no model.\n• Categories come from a merchant dictionary plus your own corrections, which persist. When unsure it says \"Uncategorized\" rather than guessing.\n• Database encrypted with SQLCipher; key held in the Android Keystore; excluded from OS backup.\n• Encrypted backup file you keep wherever you like.\n• Arabic and English.\n\nSaudi banks first (AlRajhi, Alinma, SNB, SABB, Al Bilad, STC Pay, …). Templates and the merchant dictionary are open data — contribute your bank.\n"
+        },
+        "preferredSigner": "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+      },
+      "versions": {
+        "e425bacb04f3b44a7eeb0c2a20d79f8b7dd800443c24f40c49ac179545daed20": {
+          "added": 1790119575000,
+          "file": {
+            "name": "/tidybox-v0.1.18.apk",
+            "sha256": "e425bacb04f3b44a7eeb0c2a20d79f8b7dd800443c24f40c49ac179545daed20",
+            "size": 28728744
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.18",
+            "versionCode": 19,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "25c2d3092fd8c923b14af1fd367af46c0a489e3b2965c4a9533abca9c17cf279": {
+          "added": 1790119576000,
+          "file": {
+            "name": "/tidybox-v0.1.17.apk",
+            "sha256": "25c2d3092fd8c923b14af1fd367af46c0a489e3b2965c4a9533abca9c17cf279",
+            "size": 28728744
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.17",
+            "versionCode": 18,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "40dbec5aad07f2ece237acb1a6ab8eb82341c6f263263640e777e981d37fd554": {
+          "added": 1790119577000,
+          "file": {
+            "name": "/tidybox-v0.1.16.apk",
+            "sha256": "40dbec5aad07f2ece237acb1a6ab8eb82341c6f263263640e777e981d37fd554",
+            "size": 28724648
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.16",
+            "versionCode": 17,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "e85a83448616c89f9ece85b8b6deb890362f2ee13b8e582d081d7a6c9be18a26": {
+          "added": 1790119578000,
+          "file": {
+            "name": "/tidybox-v0.1.14.apk",
+            "sha256": "e85a83448616c89f9ece85b8b6deb890362f2ee13b8e582d081d7a6c9be18a26",
+            "size": 28527806
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.14",
+            "versionCode": 15,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "bb975c9ead179ef6b59fd878aff5a4a88b824382b34005376c9136af9231aac5": {
+          "added": 1790119579000,
+          "file": {
+            "name": "/tidybox-v0.1.13.apk",
+            "sha256": "bb975c9ead179ef6b59fd878aff5a4a88b824382b34005376c9136af9231aac5",
+            "size": 28527806
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.13",
+            "versionCode": 14,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "3085f46e7be061bde67072d820aeab848ae5deaf7d9ba9c61a9954af7dadfda8": {
+          "added": 1790119580000,
+          "file": {
+            "name": "/tidybox-v0.1.12.apk",
+            "sha256": "3085f46e7be061bde67072d820aeab848ae5deaf7d9ba9c61a9954af7dadfda8",
+            "size": 28527806
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.12",
+            "versionCode": 13,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "fe26d3a64068b33f88fd2593f794c681d03dc20e62866380c9d405cbfdb395bc": {
+          "added": 1790119581000,
+          "file": {
+            "name": "/tidybox-v0.1.9.apk",
+            "sha256": "fe26d3a64068b33f88fd2593f794c681d03dc20e62866380c9d405cbfdb395bc",
+            "size": 28523710
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.9",
+            "versionCode": 10,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "c1cfbf9d761fff9e7e1f2f3e6255b7d1591178937cb58c620e304335056b2788": {
+          "added": 1790119582000,
+          "file": {
+            "name": "/tidybox-v0.1.8.apk",
+            "sha256": "c1cfbf9d761fff9e7e1f2f3e6255b7d1591178937cb58c620e304335056b2788",
+            "size": 28523710
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.8",
+            "versionCode": 9,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "54b402c594899ba7a4cfc9c19641c4ae16b3fb5404d7669708693e5d14ada998": {
+          "added": 1790119583000,
+          "file": {
+            "name": "/tidybox-v0.1.7.apk",
+            "sha256": "54b402c594899ba7a4cfc9c19641c4ae16b3fb5404d7669708693e5d14ada998",
+            "size": 28523710
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.7",
+            "versionCode": 8,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "cfa30ef5141fad3b4ec982397483000ac7752b4e881bc2e5b9ad112a613c4496": {
+          "added": 1790119584000,
+          "file": {
+            "name": "/tidybox-v0.1.6.apk",
+            "sha256": "cfa30ef5141fad3b4ec982397483000ac7752b4e881bc2e5b9ad112a613c4496",
+            "size": 28425298
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.6",
+            "versionCode": 7,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "e9231576a81bd8b1791e2df7734009cc584d72f9ffcf6df9322a507e583fd0c7": {
+          "added": 1790119585000,
+          "file": {
+            "name": "/tidybox-v0.1.5.apk",
+            "sha256": "e9231576a81bd8b1791e2df7734009cc584d72f9ffcf6df9322a507e583fd0c7",
+            "size": 28421202
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.5",
+            "versionCode": 6,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "b0ebf41fea11ba529d439122244832fa9528b5641552b3b5ad6ba267b42aa74b": {
+          "added": 1790119586000,
+          "file": {
+            "name": "/tidybox-v0.1.4.apk",
+            "sha256": "b0ebf41fea11ba529d439122244832fa9528b5641552b3b5ad6ba267b42aa74b",
+            "size": 28388434
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.4",
+            "versionCode": 5,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "c3049f291f4e1add9e9922311accbf4946eac21dd8f50110947add4df51122d3": {
+          "added": 1790119587000,
+          "file": {
+            "name": "/tidybox-v0.1.2.apk",
+            "sha256": "c3049f291f4e1add9e9922311accbf4946eac21dd8f50110947add4df51122d3",
+            "size": 28384338
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.2",
+            "versionCode": 3,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        },
+        "c11d71b4b6c0a7bd11016d568bac85873f559b519c833774b54b10278cfa6195": {
+          "added": 1790119588000,
+          "file": {
+            "name": "/tidybox-v0.1.1.apk",
+            "sha256": "c11d71b4b6c0a7bd11016d568bac85873f559b519c833774b54b10278cfa6195",
+            "size": 28384338
+          },
+          "manifest": {
+            "nativecode": [
+              "arm64-v8a",
+              "armeabi-v7a",
+              "x86",
+              "x86_64"
+            ],
+            "versionName": "0.1.1",
+            "versionCode": 2,
+            "usesSdk": {
+              "minSdkVersion": 26,
+              "targetSdkVersion": 37
+            },
+            "signer": {
+              "sha256": [
+                "59e6dd160c7cc8c044ce9a014aab6ccf7d41edff00b8c2fcbb8cb736ed2791ac"
+              ]
+            },
+            "usesPermission": [
+              {
+                "name": "android.permission.RECEIVE_SMS"
+              },
+              {
+                "name": "android.permission.READ_SMS"
+              },
+              {
+                "name": "android.permission.WAKE_LOCK"
+              },
+              {
+                "name": "android.permission.ACCESS_NETWORK_STATE"
+              },
+              {
+                "name": "android.permission.RECEIVE_BOOT_COMPLETED"
+              },
+              {
+                "name": "android.permission.FOREGROUND_SERVICE"
+              },
+              {
+                "name": "app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

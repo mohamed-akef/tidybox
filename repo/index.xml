@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<fdroid>
+	<repo icon="icon.png" name="Tidy Box" pubkey="308205853082036da003020102020807b6c8587b4ea530300d06092a864886f70d01010c05003070310b3009060355040613026567310e300c06035504081305636169726f310e300c06035504071305636169726f31143012060355040a130b4f70656e20736f7572636531143012060355040b130b446576656c6f706d656e74311530130603550403130c6d6f68616d656420616b65663020170d3236303932323130303931395a180f32303534303230373130303931395a3070310b3009060355040613026567310e300c06035504081305636169726f310e300c06035504071305636169726f31143012060355040a130b4f70656e20736f7572636531143012060355040b130b446576656c6f706d656e74311530130603550403130c6d6f68616d656420616b656630820222300d06092a864886f70d01010105000382020f003082020a0282020100c0aebe695061ee53aa6ab74b286957568a2c44677c1a9075d0a5e676e7a0307270efc94de2a65d720f67d178b3255ece1307294a617bdfa45e077367a2494bd56e0e89db5dc983504a087bcc4b501e68ae41d09fcf6f258d6932f7a61dd441ce353bce5b1a9ade4d0f84e0dbd3adac67865f762fe25938a6626570685e21397faf3f1b756d54b12becfcdb68ab6913258ffd1985586312be914fa8250284bda784fae0f3095b110eacb5378f5ed13bb3f27f9740e3760cf30b874f026f9df4b921ca914f9d23f91c32fed8c890afef443aa3b7f4db8b3cd47ac099f70a75c1c480a2d7be6479edb26afc39905d0c633779efdef91dcc13abdc887521a26ae323e40d2cd8a4e15116ec430d974302d1201c006608cf60b917d4463a19b50d46667065547dcd8d95112476e3f89f563dd0da33945d749e2cb365739b839d6c308107e3a66bc1e57a204683598527fd9c4c28d1e8fb179e5c5788e91a1f81c1275aae97913b0c8bbf55167e96305e19ffea1afa5372c79b1054ae280811f194a801895cfb1db8d83185d9b5bad12988ac550e2cee11ddb758cfc7a02c720ee52cc335fcdebbd92f8a21c5de74e2db177cca8150cc3b3693ee25486e1fd4c2fbb7a2709a0fb21a9946275a68d6aa53df4bdceb80d7513372831ef0792ff9e51af838e85c2491e2b014bc16d8ff7250ef5f2879300d472e4d6e6281e9059741770b470203010001a321301f301d0603551d0e04160414ddffc3e7a89affae0dff01f56171296ab03c0db4300d06092a864886f70d01010c050003820201008c9fb71ecd9661ef2dd617639a6585ba7e5d66822b828a8b604b6bc74c3bb63c5e64ca061c45dbb3034094d18ba192ebe5384e51810325bc4586264fdf7861bb16169f806563ca2d0a4fc15fd9e9b3b01dfad430ae25284552beb23febaafd1648bbf5958f93dd0e131d27dbd1395d66cc42d6e1329ef2a398c6c525ace370cb14d4f831cb0f6e5a5972498abae1f3d3fc7f0f8580cc75757efba29ade4b1e81e5cb9d9393f2152c29ef92f0cb9ab1f46f5b4c6090b000a7aa24d937281544cef1190a444cc68f687847a8f4758432d67980f316317f660be491fb4ba8f5cb0ff32ef55b8f5482842a173f1ff61f01283a29c6dc921594a501d3c1337225350aaccded6fc0878f634257dcd2c6e2aeaa8899be50bc7ac67e14437b5e3cbd3b4ae0a4e5007aab656fdf4a0bc860d34d41dffc1b2a79386cbdd3d3a3cc811ca065fc4b81a0e7034b1f00ee4651a0e7a8edbd723caa8f16c62c570e2f51365102f34170a976172e447e4690d59b31f98af670334a2277edcd77e8cdc0b22ed2e6cdbe97a86ce5516b6ffd59cee0729876ebe6b257bf8b11fe94e5fff90bdfaa4b266f0fc6c27c37aaae37d2d582bd8a9d38d10ca26f408b414b8ddcc049b7a8846c81952779baef9e0b3824d0f6152d7303a9071f70b68fdc8cdffcb8f60cfb02ac98089faed656d6706b43715dde6c15f64926965b607ed151701d2c1872015cda" timestamp="1790119597" url="https://mohamed-akef.github.io/tidybox/repo" version="20002">
+		<description>Bank SMS to categorized spending, entirely on your phone. Official repo for Tidy Box.</description>
+	</repo>
+	<application id="app.tidybox">
+		<id>app.tidybox</id>
+		<added>2026-09-22</added>
+		<lastupdated>2026-09-22</lastupdated>
+		<name>Tidy Box</name>
+		<summary>Bank SMS to categorized spending, entirely on your phone. No server, no account.</summary>
+		<desc>Tidy Box reads the SMS your bank sends you, turns each one into a transaction, and groups your spending by month and category — entirely on the device.
+
+No account. No server. No sync. No telemetry. The app does not even request the INTERNET permission, and the build fails if it ever does.
+
+• Only sender IDs you allow are ever read; everything else is dropped before it is stored.
+• Parsing is template matching over the bank's own labels (مبلغ:, لدى:, بطاقة:) — no cloud, no model.
+• Categories come from a merchant dictionary plus your own corrections, which persist. When unsure it says &quot;Uncategorized&quot; rather than guessing.
+• Database encrypted with SQLCipher; key held in the Android Keystore; excluded from OS backup.
+• Encrypted backup file you keep wherever you like.
+• Arabic and English.
+
+Saudi banks first (AlRajhi, Alinma, SNB, SABB, Al Bilad, STC Pay, …). Templates and the merchant dictionary are open data — contribute your bank.
+</desc>
+		<license>GPL-3.0-or-later</license>
+		<categories>Money</categories>
+		<category>Money</category>
+		<web></web>
+		<source>https://github.com/mohamed-akef/tidybox</source>
+		<tracker>https://github.com/mohamed-akef/tidybox/issues</tracker>
+		<changelog>https://github.com/mohamed-akef/tidybox/releases</changelog>
+		<marketversion></marketversion>
+		<marketvercode>19</marketvercode>
+		<package>
+			<version>0.1.18</version>
+			<versioncode>19</versioncode>
+			<apkname>tidybox-v0.1.18.apk</apkname>
+			<hash type="sha256">e425bacb04f3b44a7eeb0c2a20d79f8b7dd800443c24f40c49ac179545daed20</hash>
+			<size>28728744</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.17</version>
+			<versioncode>18</versioncode>
+			<apkname>tidybox-v0.1.17.apk</apkname>
+			<hash type="sha256">25c2d3092fd8c923b14af1fd367af46c0a489e3b2965c4a9533abca9c17cf279</hash>
+			<size>28728744</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.16</version>
+			<versioncode>17</versioncode>
+			<apkname>tidybox-v0.1.16.apk</apkname>
+			<hash type="sha256">40dbec5aad07f2ece237acb1a6ab8eb82341c6f263263640e777e981d37fd554</hash>
+			<size>28724648</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.14</version>
+			<versioncode>15</versioncode>
+			<apkname>tidybox-v0.1.14.apk</apkname>
+			<hash type="sha256">e85a83448616c89f9ece85b8b6deb890362f2ee13b8e582d081d7a6c9be18a26</hash>
+			<size>28527806</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.13</version>
+			<versioncode>14</versioncode>
+			<apkname>tidybox-v0.1.13.apk</apkname>
+			<hash type="sha256">bb975c9ead179ef6b59fd878aff5a4a88b824382b34005376c9136af9231aac5</hash>
+			<size>28527806</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.12</version>
+			<versioncode>13</versioncode>
+			<apkname>tidybox-v0.1.12.apk</apkname>
+			<hash type="sha256">3085f46e7be061bde67072d820aeab848ae5deaf7d9ba9c61a9954af7dadfda8</hash>
+			<size>28527806</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.9</version>
+			<versioncode>10</versioncode>
+			<apkname>tidybox-v0.1.9.apk</apkname>
+			<hash type="sha256">fe26d3a64068b33f88fd2593f794c681d03dc20e62866380c9d405cbfdb395bc</hash>
+			<size>28523710</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.8</version>
+			<versioncode>9</versioncode>
+			<apkname>tidybox-v0.1.8.apk</apkname>
+			<hash type="sha256">c1cfbf9d761fff9e7e1f2f3e6255b7d1591178937cb58c620e304335056b2788</hash>
+			<size>28523710</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.7</version>
+			<versioncode>8</versioncode>
+			<apkname>tidybox-v0.1.7.apk</apkname>
+			<hash type="sha256">54b402c594899ba7a4cfc9c19641c4ae16b3fb5404d7669708693e5d14ada998</hash>
+			<size>28523710</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.6</version>
+			<versioncode>7</versioncode>
+			<apkname>tidybox-v0.1.6.apk</apkname>
+			<hash type="sha256">cfa30ef5141fad3b4ec982397483000ac7752b4e881bc2e5b9ad112a613c4496</hash>
+			<size>28425298</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.5</version>
+			<versioncode>6</versioncode>
+			<apkname>tidybox-v0.1.5.apk</apkname>
+			<hash type="sha256">e9231576a81bd8b1791e2df7734009cc584d72f9ffcf6df9322a507e583fd0c7</hash>
+			<size>28421202</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.4</version>
+			<versioncode>5</versioncode>
+			<apkname>tidybox-v0.1.4.apk</apkname>
+			<hash type="sha256">b0ebf41fea11ba529d439122244832fa9528b5641552b3b5ad6ba267b42aa74b</hash>
+			<size>28388434</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.2</version>
+			<versioncode>3</versioncode>
+			<apkname>tidybox-v0.1.2.apk</apkname>
+			<hash type="sha256">c3049f291f4e1add9e9922311accbf4946eac21dd8f50110947add4df51122d3</hash>
+			<size>28384338</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+		<package>
+			<version>0.1.1</version>
+			<versioncode>2</versioncode>
+			<apkname>tidybox-v0.1.1.apk</apkname>
+			<hash type="sha256">c11d71b4b6c0a7bd11016d568bac85873f559b519c833774b54b10278cfa6195</hash>
+			<size>28384338</size>
+			<sdkver>26</sdkver>
+			<targetSdkVersion>37</targetSdkVersion>
+			<added>2026-09-22</added>
+			<sig>523667aa521be6db08f8e9490bb8d31f</sig>
+			<permissions>ACCESS_NETWORK_STATE,FOREGROUND_SERVICE,READ_SMS,RECEIVE_BOOT_COMPLETED,RECEIVE_SMS,WAKE_LOCK,app.tidybox.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</permissions>
+			<nativecode>arm64-v8a,armeabi-v7a,x86,x86_64</nativecode>
+		</package>
+	</application>
+</fdroid>
