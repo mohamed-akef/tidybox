@@ -23,4 +23,5 @@
     <string name="received">Received</string>
     <string name="pick_category">Category for %1$s</string>
     <string name="empty">No transactions yet. Import history or wait for the next bank SMS.</string>
+    <string name="fx_excluded">%1$d row(s) in another currency are listed but not included in these totals.</string>
 </resources>
