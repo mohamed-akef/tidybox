@@ -80,6 +80,13 @@ over the network would be a real attack surface in an app whose entire pitch is 
 **Boundary:** download only. No request body, no identifier, no telemetry, no upload of
 any kind — and the whole mechanism can be disabled, falling back to the bundled pack.
 
+**Status 2026-09-22:** the pack now carries the **extraction templates** too (`templates`
+section of `rulepacks/merchants.json`: currencies, type rules, amount/merchant/card/date
+patterns). `Extract.kt` is only the algorithm; a new bank is a pack edit. Loading a pack in
+Settings re-reads stored messages the old templates rejected. A pack without `templates`
+keeps the bundled ones. Download ([O5](#open-decisions)) is still unbuilt on purpose: packs
+ship with releases or load from a file; the app has no network.
+
 ### D4 — Rules and user corrections; no model
 
 **Extraction:** no model, anywhere. Bank SMS are labeled forms in every country. Regex

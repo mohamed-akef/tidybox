@@ -12,8 +12,8 @@ import kotlinx.serialization.json.Json
  * 64 KB constant-pool limit. merchants.json is ~6 KB today; if community contributions approach
  * that ceiling, move it to a platform resource read at startup.
  *
- * ponytail: extraction templates are still Kotlin (Extract.kt) — they are per-bank regex that
- * changed on every spike pass and are not yet stable enough to be data. Download + Ed25519
+ * Extraction templates ([Templates]) live in the same pack; a pack without them keeps the
+ * bundled ones, so a merchants-only pack from before still loads. Download + Ed25519
  * verification is the next step of D3; nothing here opens a socket.
  */
 @Serializable
@@ -24,7 +24,11 @@ data class RulePack(
     /** category → merchant names; matched exact and fuzzy after [normalizeMerchant]. */
     val merchants: Map<String, List<String>>,
     val keywords: Keywords,
+    val templates: Templates? = null,
 ) {
+    /** Compiled extraction rules; falls back to the bundled pack's templates. */
+    internal val engine: Engine by lazy { Engine(templates ?: bundled.templates!!) }
+
     @Serializable
     data class Keywords(
         /** category → Latin whole-token keywords (`rest`, `mtaam`, `mahta`). */
@@ -61,9 +65,11 @@ data class RulePack(
             val undeclared = (p.merchants.keys + p.keywords.latin.keys + p.keywords.latinPhrases.keys +
                 p.keywords.arabic.keys) - p.categories.toSet()
             require(undeclared.isEmpty()) { "categories not declared in `categories`: $undeclared" }
+            // A bad regex or enum name must fail here, with the load, not later inside a parse job.
+            p.templates?.let { t -> runCatching { Engine(t) }.getOrElse { throw IllegalArgumentException("bad templates: ${it.message}", it) } }
         }
 
         /** The pack compiled in from rulepacks/merchants.json. */
-        val bundled: RulePack by lazy { parse(BUNDLED_RULEPACK_JSON) }
+        val bundled: RulePack by lazy { parse(BUNDLED_RULEPACK_JSON).also { check(it.templates != null) { "bundled pack has no templates" } } }
     }
 }

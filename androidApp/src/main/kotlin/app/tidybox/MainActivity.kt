@@ -236,7 +236,8 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             packStatus = runCatching {
                 withContext(Dispatchers.IO) {
                     val text = ctx.contentResolver.openInputStream(uri)!!.use { String(it.readBytes()) }
-                    RulePacks.install(ctx, text).also { recategorizeAll(Db.get(ctx), it) }
+                    // A pack carries templates too: re-read what the old ones rejected.
+                    RulePacks.install(ctx, text).also { recategorizeAll(Db.get(ctx), it); reparseUnread(Db.get(ctx), it, KeepRaw.get(ctx)) }
                 }
             }.map { pack = it; "" }.getOrElse { ctx.getString(R.string.rulepack_bad) }
             onReload()
@@ -261,7 +262,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             TextButton(onClick = { loadPack.launch(arrayOf("application/json", "*/*")) }) { Text(stringResource(R.string.rulepack_load)) }
             TextButton(onClick = {
                 RulePacks.reset(ctx); pack = RulePacks.current(ctx)
-                scope.launch { withContext(Dispatchers.IO) { recategorizeAll(Db.get(ctx), pack) }; onReload() }
+                scope.launch { withContext(Dispatchers.IO) { recategorizeAll(Db.get(ctx), pack); reparseUnread(Db.get(ctx), pack, KeepRaw.get(ctx)) }; onReload() }
             }) { Text(stringResource(R.string.rulepack_reset)) }
             Text(packStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
