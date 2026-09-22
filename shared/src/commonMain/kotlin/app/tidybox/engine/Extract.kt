@@ -6,8 +6,11 @@ enum class TxType {
     PURCHASE, REFUND, TRANSFER_IN, TRANSFER_OUT, TRANSFER_SELF, SALARY, DEPOSIT, ATM_OUT, BILL, GOV, INVESTMENT
 }
 
-/** Why a message did not become a transaction. Surfaced in the UI as "informational", never as money. */
-enum class Rejection { OTP, DECLINED, AUTH_HOLD, NO_TEMPLATE, NO_AMOUNT }
+/**
+ * Why a message did not become a transaction. Never money. NO_TEMPLATE / NO_AMOUNT mean the
+ * engine did not understand the wording; the others mean it did and chose not to.
+ */
+enum class Rejection { OTP, DECLINED, AUTH_HOLD, INFORMATIONAL, NO_TEMPLATE, NO_AMOUNT }
 
 data class LocalDateTime(val year: Int, val month: Int, val day: Int, val hour: Int, val minute: Int) {
     val isValid get() = month in 1..12 && day in 1..31 && hour in 0..23 && minute in 0..59
