@@ -94,6 +94,4 @@ for the APK (needs an Android SDK; `local.properties` → `sdk.dir`).
 
 ## License
 
-Not yet chosen — see [open decisions](docs/decisions.md#open-decisions). A copyleft
-license (GPLv3 / AGPLv3) is the usual fit for a privacy tool distributed through
-F-Droid, but this is the owner's call and deliberately left open.
+[GPL-3.0-or-later](LICENSE). Chosen 2026-09-22 for the F-Droid submission (O2).

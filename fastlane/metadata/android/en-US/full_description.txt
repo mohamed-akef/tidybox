@@ -1,0 +1,12 @@
+Raseed reads the SMS your bank sends you, turns each one into a transaction, and groups your spending by month and category — entirely on the device.
+
+No account. No server. No sync. No telemetry. The app does not even request the INTERNET permission, and the build fails if it ever does.
+
+• Only sender IDs you allow are ever read; everything else is dropped before it is stored.
+• Parsing is template matching over the bank's own labels (مبلغ:, لدى:, بطاقة:) — no cloud, no model.
+• Categories come from a merchant dictionary plus your own corrections, which persist. When unsure it says "Uncategorized" rather than guessing.
+• Database encrypted with SQLCipher; key held in the Android Keystore; excluded from OS backup.
+• Encrypted backup file you keep wherever you like.
+• Arabic and English.
+
+Saudi banks first (AlRajhi, Alinma, SNB, SABB, Al Bilad, STC Pay, …). Templates and the merchant dictionary are open data — contribute your bank.
