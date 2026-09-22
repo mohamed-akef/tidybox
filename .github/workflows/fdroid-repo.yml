@@ -1,0 +1,81 @@
+name: fdroid-repo
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# Publishes an F-Droid repository at https://mohamed-akef.github.io/tidybox/repo from the APKs on
+# GitHub Releases. Users add that URL in the F-Droid client and install through it — the store
+# path Play Protect does not block. The index is signed with the app's release key (same
+# RASEED_* secrets); a separate repo key can replace it later without users re-adding the repo
+# only if done before anyone adds it, so decide early.
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      KEYSTORE_B64: ${{ secrets.RASEED_KEYSTORE_B64 }}
+      KS_PASS: ${{ secrets.RASEED_KEYSTORE_PASSWORD }}
+      KEY_PASS: ${{ secrets.RASEED_KEY_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.RASEED_KEY_ALIAS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet fdroidserver
+      - name: collect signed APKs from all releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p fdroid/repo
+          for tag in $(gh release list --json tagName -q '.[].tagName'); do
+            gh release download "$tag" -p 'tidybox-*.apk' -D fdroid/repo || true
+          done
+          rm -f fdroid/repo/*-unsigned.apk
+          ls -la fdroid/repo
+      - name: build the repo index
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > fdroid/ks.jks
+          cat > fdroid/config.yml <<EOF
+          repo_url: https://mohamed-akef.github.io/tidybox/repo
+          repo_name: Tidy Box
+          repo_description: Bank SMS to categorized spending, entirely on your phone. Official repo for Tidy Box.
+          keystore: ks.jks
+          keystorepass: "$KS_PASS"
+          keypass: "$KEY_PASS"
+          repo_keyalias: "$KEY_ALIAS"
+          archive_older: 0
+          sdk_path: $ANDROID_HOME
+          EOF
+          mkdir -p fdroid/metadata
+          # Builds: is for source builds; a binary repo only needs the descriptive fields.
+          grep -v -e '^Builds:' -e '^  - versionName' -e '^    versionCode' -e '^    commit' -e '^    subdir' -e '^    gradle' -e '^      - yes' -e '^    output' \
+            fdroid/app.tidybox.yml > fdroid/metadata/app.tidybox.yml
+          cp -r fastlane/metadata/android fdroid/metadata/app.tidybox 2>/dev/null || true
+          cd fdroid && fdroid update --pretty --use-date-from-apk
+          keytool -list -v -keystore ks.jks -alias "$KEY_ALIAS" -storepass "$KS_PASS" 2>/dev/null \
+            | awk -F': ' '/SHA256:/{gsub(":","",$2); print tolower($2)}' > repo/FINGERPRINT.txt
+          rm -f ks.jks config.yml
+          echo "fingerprint: $(cat repo/FINGERPRINT.txt)"
+          ls -la repo
+      - name: publish to gh-pages
+        run: |
+          cd fdroid
+          mkdir -p site/repo && cp -r repo/. site/repo/
+          cat > site/index.html <<'EOF'
+          <!doctype html><meta charset="utf-8"><title>Tidy Box — F-Droid repo</title>
+          <h1>Tidy Box — F-Droid repository</h1>
+          <p>In the F-Droid client: Settings → Repositories → + → paste
+          <code>https://mohamed-akef.github.io/tidybox/repo</code>. Fingerprint in
+          <a href="repo/FINGERPRINT.txt">repo/FINGERPRINT.txt</a>.</p>
+          <p>Source: <a href="https://github.com/mohamed-akef/tidybox">github.com/mohamed-akef/tidybox</a></p>
+          EOF
+          cd site && git init -q && git checkout -q -b gh-pages && git add -A
+          git -c user.name=github-actions -c user.email=github-actions@github.com commit -q -m "fdroid repo $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" gh-pages

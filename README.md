@@ -20,6 +20,16 @@ The design's central assumption — rules and user corrections, no model — has
 72% correct / **0% wrong** / 28% abstain on held-out merchants, and an embedding model
 added nothing. Building starts from there.
 
+## Install
+
+**F-Droid (recommended).** In the F-Droid client: Settings → Repositories → **+** → paste
+`https://mohamed-akef.github.io/tidybox/repo` → then search *Tidy Box*. Installing through a store
+client is what Google Play Protect allows; downloading the APK directly is blocked on Android 15+
+("App blocked to protect your device") for any app that reads SMS.
+
+**APK.** [GitHub Releases](https://github.com/mohamed-akef/tidybox/releases) — signed; needs Play
+Protect scanning turned off for the install, or `adb install`.
+
 ## Why this exists
 
 Saudi apps like **Wafeer** and **مصروفي (Masrofi)** already parse bank SMS into
