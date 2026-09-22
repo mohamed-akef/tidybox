@@ -175,7 +175,9 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         uri ?: return@rememberLauncherForActivityResult
         scope.launch {
             withContext(Dispatchers.IO) {
-                ctx.contentResolver.openOutputStream(uri)!!.use { it.write(exportEncrypted(Db.get(ctx), passphrase.toCharArray())) }
+                val pw = passphrase.toCharArray()
+                try { ctx.contentResolver.openOutputStream(uri)!!.use { it.write(exportEncrypted(Db.get(ctx), pw)) } }
+                finally { pw.fill('\u0000') }
             }
             backupStatus = ctx.getString(R.string.exported)
         }
@@ -186,7 +188,8 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             backupStatus = runCatching {
                 withContext(Dispatchers.IO) {
                     val blob = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
-                    importEncrypted(Db.get(ctx), blob, passphrase.toCharArray())
+                    val pw = passphrase.toCharArray()
+                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), blob, pw) } finally { pw.fill('\u0000') }
                 }
             }.map { (m, r) -> ctx.getString(R.string.imported_backup, m, r) }.getOrElse { ctx.getString(R.string.import_failed) }
             onReload()
@@ -204,7 +207,6 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         }
 
         Text(stringResource(R.string.import_history), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.import_history), style = MaterialTheme.typography.titleMedium)
         Row {
             for ((label, since) in listOf(R.string.range_1m to now - 30 * DAY, R.string.range_3m to now - 90 * DAY, R.string.range_12m to now - 365 * DAY, R.string.range_all to 0L)) {
                 TextButton(enabled = granted, onClick = { onImport(since) }) { Text(stringResource(label)) }

@@ -52,17 +52,29 @@ fun exportEncrypted(db: RaseedDb, passphrase: CharArray): ByteArray {
     return seal(json, passphrase)
 }
 
-/** @return (messages stored, rules stored). Throws on wrong passphrase or corrupt file. */
-fun importEncrypted(db: RaseedDb, blob: ByteArray, passphrase: CharArray): Pair<Int, Int> {
+/**
+ * Restore a sealed file. A backup is untrusted input like any other — it may be older than the
+ * user's current allowlist, or not theirs at all — so every message goes through [storeMessage]'s
+ * allowlist guard and messages from senders they no longer allow are dropped, not restored.
+ *
+ * @return (messages stored, rules stored); the message count excludes anything the allowlist
+ *   dropped. Throws on wrong passphrase or corrupt file.
+ */
+fun importEncrypted(db: RaseedDb, allowed: Set<String>, blob: ByteArray, passphrase: CharArray): Pair<Int, Int> {
     val json = JSONObject(String(open(blob, passphrase)))
     val q = db.raseedQueries
     val msgs = json.getJSONArray("messages")
     val rules = json.getJSONArray("rules")
+    var stored = 0
     db.transaction {
-        for (i in 0 until msgs.length()) msgs.getJSONObject(i).let { storeMessage(db, it.getString("s"), it.getString("b"), it.getLong("t")) }
+        for (i in 0 until msgs.length()) msgs.getJSONObject(i).let {
+            if (storeMessage(db, allowed, it.getString("s"), it.getString("b"), it.getLong("t"))) stored++
+        }
         for (i in 0 until rules.length()) rules.getJSONObject(i).let { q.upsertRule(it.getString("k"), it.getString("c")) }
     }
     parsePending(db)
+    // Rows parsed just now already picked these up via `overrides`; this is for rows that were
+    // already in the database before the import.
     for (i in 0 until rules.length()) rules.getJSONObject(i).let { q.applyRule(it.getString("c"), it.getString("k")) }
-    return msgs.length() to rules.length()
+    return stored to rules.length()
 }
