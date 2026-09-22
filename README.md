@@ -10,7 +10,7 @@ Your financial history never leaves your phone, because there is nowhere for it 
 
 ---
 
-## Status: design phase — nothing is implemented yet
+## Status: first code — parsing engine and an Android skeleton
 
 Research, a design, one measurement, and the first code: the parsing engine (`shared/`)
 with the 174-message corpus as its test suite, and an Android app skeleton that captures
