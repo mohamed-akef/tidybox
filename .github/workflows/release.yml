@@ -12,6 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # Job level, not step level: a step's own `env:` block is NOT in the `env` context when that
+    # step's `if:` is evaluated, and `secrets` is not available in a step `if:` at all. Declaring
+    # this inside the signing step made its condition permanently false, so signing never ran and
+    # the release quietly shipped an unsigned APK.
+    env:
+      KEYSTORE_B64: ${{ secrets.RASEED_KEYSTORE_B64 }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -25,24 +31,45 @@ jobs:
           AAPT=$(ls -d $ANDROID_HOME/build-tools/*/aapt2 | tail -1)
           $AAPT dump permissions androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk | tee perms.txt
           ! grep -q "android.permission.INTERNET" perms.txt
+      # Secrets are passed through env, never interpolated into the script. `${{ }}` substitutes
+      # into the script TEXT before bash parses it, so a password containing a quote or `$(` would
+      # be executed; and `--ks-pass pass:<literal>` would put the signing password in argv, where
+      # any other process on the runner can read it. apksigner's `env:` form avoids both.
       - name: sign (only when secrets exist)
-        if: ${{ env.KEYSTORE_B64 != '' }}
+        if: env.KEYSTORE_B64 != ''
         env:
-          KEYSTORE_B64: ${{ secrets.RASEED_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.RASEED_KEYSTORE_PASSWORD }}
+          KEY_PASS: ${{ secrets.RASEED_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RASEED_KEY_ALIAS }}
+          TAG: ${{ github.ref_name }}
         run: |
           echo "$KEYSTORE_B64" | base64 -d > ks.jks
           APKSIGNER=$(ls -d $ANDROID_HOME/build-tools/*/apksigner | tail -1)
-          $APKSIGNER sign --ks ks.jks --ks-pass "pass:${{ secrets.RASEED_KEYSTORE_PASSWORD }}" \
-            --ks-key-alias "${{ secrets.RASEED_KEY_ALIAS }}" --key-pass "pass:${{ secrets.RASEED_KEY_PASSWORD }}" \
-            --out androidApp/build/outputs/apk/release/raseed-${{ github.ref_name }}.apk \
+          "$APKSIGNER" sign --ks ks.jks --ks-pass env:KS_PASS \
+            --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS \
+            --out "androidApp/build/outputs/apk/release/raseed-$TAG.apk" \
             androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
-          rm ks.jks
+
+      # Separate step with always(), so a failed signing run does not leave the keystore on disk
+      # for the upload step to pick up.
+      - name: shred the keystore
+        if: always()
+        run: rm -f ks.jks
       - name: name the artifact
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
           cd androidApp/build/outputs/apk/release
-          [ -f raseed-${{ github.ref_name }}.apk ] || cp androidApp-release-unsigned.apk raseed-${{ github.ref_name }}-unsigned.apk
+          if [ -f "raseed-$TAG.apk" ]; then
+            echo "signed APK present"
+          else
+            echo "::warning::no signing secrets — publishing an UNSIGNED APK, which cannot be installed directly"
+            cp androidApp-release-unsigned.apk "raseed-$TAG-unsigned.apk"
+          fi
           sha256sum raseed-*.apk > SHA256SUMS
-      - uses: softprops/action-gh-release@v2
+      # Pinned by SHA: this action holds `contents: write` on a repo that publishes installable
+      # APKs, and a tag is mutable. SHA is softprops/action-gh-release v2.
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           files: |
             androidApp/build/outputs/apk/release/raseed-*.apk
