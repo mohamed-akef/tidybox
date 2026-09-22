@@ -38,7 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import co.raseed.db.RecentTx
-import co.raseed.engine.KNOWN_CATEGORIES
+import co.raseed.engine.knownCategories
 import co.raseed.sms.backfill
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -89,8 +89,9 @@ private fun App() {
             onDismissRequest = { picking = null },
             title = { Text(stringResource(R.string.pick_category, t.merchant ?: "")) },
             text = {
+                val cats = remember { knownCategories(RulePacks.current(ctx)) }
                 LazyColumn {
-                    items(KNOWN_CATEGORIES) { cat ->
+                    items(cats) { cat ->
                         TextButton(onClick = {
                             picking = null
                             scope.launch { withContext(Dispatchers.IO) { correct(Db.get(ctx), t.merchant_key!!, cat) }; reload() }
@@ -189,7 +190,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
                 withContext(Dispatchers.IO) {
                     val blob = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
                     val pw = passphrase.toCharArray()
-                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), blob, pw) } finally { pw.fill('\u0000') }
+                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), RulePacks.current(ctx), blob, pw) } finally { pw.fill('\u0000') }
                 }
             }.map { (m, r) -> ctx.getString(R.string.imported_backup, m, r) }.getOrElse { ctx.getString(R.string.import_failed) }
             onReload()

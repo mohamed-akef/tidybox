@@ -105,8 +105,13 @@ fun recategorizeAll(db: RaseedDb, pack: RulePack) {
     }
 }
 
-/** Parse everything stored but not yet parsed. Pure engine in, rows out. Safe to run any time. */
-fun parsePending(db: RaseedDb, pack: RulePack = RulePack.bundled) {
+/**
+ * Parse everything stored but not yet parsed. Pure engine in, rows out. Safe to run any time.
+ *
+ * `pack` is deliberately not defaulted: a default is right at two call sites and silently wrong at
+ * the third, and the compiler is the only thing that reliably notices.
+ */
+fun parsePending(db: RaseedDb, pack: RulePack) {
     val overrides = db.raseedQueries.rules().executeAsList().associate { it.merchant_key to it.category }
     for (m in db.raseedQueries.unparsed().executeAsList()) {
         when (val r = extract(m.body)) {

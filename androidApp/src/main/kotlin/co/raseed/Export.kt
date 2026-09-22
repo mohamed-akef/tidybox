@@ -1,6 +1,7 @@
 package co.raseed
 
 import co.raseed.db.RaseedDb
+import co.raseed.engine.RulePack
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.SecureRandom
@@ -60,7 +61,7 @@ fun exportEncrypted(db: RaseedDb, passphrase: CharArray): ByteArray {
  * @return (messages stored, rules stored); the message count excludes anything the allowlist
  *   dropped. Throws on wrong passphrase or corrupt file.
  */
-fun importEncrypted(db: RaseedDb, allowed: Set<String>, blob: ByteArray, passphrase: CharArray): Pair<Int, Int> {
+fun importEncrypted(db: RaseedDb, allowed: Set<String>, pack: RulePack, blob: ByteArray, passphrase: CharArray): Pair<Int, Int> {
     val json = JSONObject(String(open(blob, passphrase)))
     val q = db.raseedQueries
     val msgs = json.getJSONArray("messages")
@@ -72,7 +73,7 @@ fun importEncrypted(db: RaseedDb, allowed: Set<String>, blob: ByteArray, passphr
         }
         for (i in 0 until rules.length()) rules.getJSONObject(i).let { q.upsertRule(it.getString("k"), it.getString("c")) }
     }
-    parsePending(db)
+    parsePending(db, pack)
     // Rows parsed just now already picked these up via `overrides`; this is for rows that were
     // already in the database before the import.
     for (i in 0 until rules.length()) rules.getJSONObject(i).let { q.applyRule(it.getString("c"), it.getString("k")) }
