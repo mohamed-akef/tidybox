@@ -7,6 +7,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import co.raseed.engine.EngineResult
 import co.raseed.engine.categorize
 import co.raseed.engine.extract
+import co.raseed.engine.normalizeMerchant
 import java.security.MessageDigest
 
 /**
@@ -46,6 +47,12 @@ fun storeMessage(db: RaseedDb, sender: String?, body: String, receivedAt: Long):
     return true
 }
 
+/** The user's correction: persists as a rule and rewrites every row of that merchant. */
+fun correct(db: RaseedDb, merchantKey: String, category: String) {
+    db.raseedQueries.upsertRule(merchantKey, category)
+    db.raseedQueries.applyRule(category, merchantKey)
+}
+
 /** Parse everything stored but not yet parsed. Pure engine in, rows out. Safe to run any time. */
 fun parsePending(db: RaseedDb) {
     val overrides = db.raseedQueries.rules().executeAsList().associate { it.merchant_key to it.category }
@@ -55,7 +62,7 @@ fun parsePending(db: RaseedDb) {
                 val tx = r.tx
                 val c = categorize(tx, overrides)
                 db.raseedQueries.insertTx(
-                    m.id, tx.type.name, tx.amount, tx.currency, tx.merchant, tx.cardLast4,
+                    m.id, tx.type.name, tx.amount, tx.currency, tx.merchant, tx.merchant?.let(::normalizeMerchant), tx.cardLast4,
                     tx.occurredAt?.let { "%04d-%02d-%02d %02d:%02d".format(it.year, it.month, it.day, it.hour, it.minute) },
                     c.category, c.reason.name,
                 )

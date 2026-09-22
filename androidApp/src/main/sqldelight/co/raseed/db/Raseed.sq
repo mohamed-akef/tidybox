@@ -20,6 +20,7 @@ CREATE TABLE tx (
     amount REAL NOT NULL,
     currency TEXT NOT NULL,
     merchant TEXT,
+    merchant_key TEXT,                  -- normalizeMerchant(merchant); what a correction applies to
     card_last4 TEXT,
     occurred_at TEXT,                   -- ISO-ish from the message; NULL when the bank gave none
     category TEXT,
@@ -41,8 +42,8 @@ markParsed:
 UPDATE message SET parsed = 1 WHERE id = ?;
 
 insertTx:
-INSERT OR IGNORE INTO tx(message_id, type, amount, currency, merchant, card_last4, occurred_at, category, category_reason)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO tx(message_id, type, amount, currency, merchant, merchant_key, card_last4, occurred_at, category, category_reason)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 recentTx:
 SELECT tx.*, message.received_at FROM tx JOIN message ON message.id = tx.message_id
@@ -53,3 +54,7 @@ SELECT * FROM merchant_rule;
 
 upsertRule:
 INSERT OR REPLACE INTO merchant_rule(merchant_key, category) VALUES (?, ?);
+
+-- One tap fixes every past and future transaction of that merchant (design §2.4 step 1).
+applyRule:
+UPDATE tx SET category = ?, category_reason = 'OVERRIDE' WHERE merchant_key = ?;
