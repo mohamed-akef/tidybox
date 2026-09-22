@@ -55,7 +55,10 @@ jobs:
           EOF
           mkdir -p fdroid/metadata
           # Builds: is for source builds; a binary repo only needs the descriptive fields.
-          grep -v -e '^Builds:' -e '^  - versionName' -e '^    versionCode' -e '^    commit' -e '^    subdir' -e '^    gradle' -e '^      - yes' -e '^    output' \
+          # CurrentVersion*: pinned in the file for the fdroiddata draft; here it would pin the
+          # client's "Suggested" version (it sat at 0.1.1 and no update was ever offered). Without
+          # it `fdroid update` suggests the highest versionCode present.
+          grep -v -e '^Builds:' -e '^CurrentVersion' -e '^  - versionName' -e '^    versionCode' -e '^    commit' -e '^    subdir' -e '^    gradle' -e '^      - yes' -e '^    output' \
             fdroid/app.tidybox.yml > fdroid/metadata/app.tidybox.yml
           cp -r fastlane/metadata/android fdroid/metadata/app.tidybox 2>/dev/null || true
           cd fdroid && fdroid update --pretty --use-date-from-apk
