@@ -303,7 +303,7 @@
         "reject": "AUTH_HOLD"
       },
       {
-        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة|كسبت .{0,12}كاش باك|احمي نفسك|تهانينا|اعتبارا من|نحيطكم علما|نود اعلامكم|ستتوقف|لن تكون متاحة|شيكات مرتدة|استخدم بطاقاتك|متاحة علي Apple Pay|كاش باك مضمون|حدثت بيانات|تم زياده الحد|حافظ علي فلوسك|استمتع بعروض",
+        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط و ?الاحكام|خصم \\d+٪|غير متاحة|كسبت .{0,12}كاش باك|احمي نفسك|تهانينا|اعتبارا من|نحيطكم علما|نود اعلامكم|ستتوقف|لن تكون متاحة|شيكات مرتدة|استخدم بطاقاتك|متاحة علي Apple Pay|كاش باك مضمون|حدثت بيانات|تم زياده الحد|حافظ علي فلوسك|استمتع بعروض|تم تفعيل بطاقتك|سيتم تحديث النظام|التوقيت الشتوي|رسائل الاحتيال|تحديث اسعار الرسوم|استبدال بطاقتكم|افتح حساب|قسط مشترياتك|قسط صك",
         "reject": "INFORMATIONAL",
         "scope": "whole"
       },
@@ -348,6 +348,16 @@
       {
         "re": "تنفيذ عملية شراء شركة|سهم",
         "type": "INVESTMENT",
+        "scope": "whole"
+      },
+      {
+        "re": "من جهة العمل",
+        "type": "SALARY",
+        "scope": "whole"
+      },
+      {
+        "re": "تم تحويل مبلغ .{0,40}علي حسابكم",
+        "type": "TRANSFER_IN",
         "scope": "whole"
       },
       {
@@ -401,7 +411,7 @@
         "flags": "i"
       },
       {
-        "re": "\\bOTP\\b|one[- ]time (?:password|code)|verification code|passcode|security code",
+        "re": "\\bOTP\\b|one[- ]time (?:password|code)|verification code|passcode|security code|use \\d{4,8} to (?:complete|verify|log ?in|confirm)",
         "reject": "OTP",
         "scope": "whole",
         "flags": "i"
@@ -443,6 +453,12 @@
         "flags": "i"
       },
       {
+        "re": "\\btransfer\\b.{0,60}\\breturned\\b",
+        "type": "TRANSFER_IN",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
         "re": "transfer .{0,40}deducted|(?:sent|transferred) .{0,40}\\bto\\b|outgoing transfer",
         "type": "TRANSFER_OUT",
         "scope": "whole",
@@ -455,7 +471,7 @@
         "flags": "i"
       },
       {
-        "re": "update your KYC|visit the branch|statement password|^your current .{0,30}balance is|password has been changed|your complaint",
+        "re": "update your KYC|visit the branch|statement password|^your current .{0,30}balance is|password has been changed|your complaint|you have logged in|PIN has been set|welcome to",
         "reject": "INFORMATIONAL",
         "scope": "whole",
         "flags": "i"
