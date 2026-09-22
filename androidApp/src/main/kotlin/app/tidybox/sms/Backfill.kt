@@ -7,6 +7,7 @@ import app.tidybox.KeepRaw
 import app.tidybox.RulePacks
 import app.tidybox.Senders
 import app.tidybox.parsePending
+import app.tidybox.reparseUnread
 import app.tidybox.storeMessage
 
 /**
@@ -32,7 +33,9 @@ fun backfill(context: Context, sinceMillis: Long, onProgress: (Int) -> Unit = {}
             if (stored % 25 == 0) onProgress(stored)
         }
     }
-    val found = parsePending(db, RulePacks.current(context), KeepRaw.get(context))
+    val pack = RulePacks.current(context)
+    val keepRaw = KeepRaw.get(context)
+    val found = reparseUnread(db, pack, keepRaw) + parsePending(db, pack, keepRaw)
     onProgress(stored)
     return stored to found
 }

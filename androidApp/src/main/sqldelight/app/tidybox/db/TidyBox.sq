@@ -56,6 +56,10 @@ recentTx:
 SELECT tx.*, message.received_at FROM tx JOIN message ON message.id = tx.message_id
 ORDER BY message.received_at DESC LIMIT 500;
 
+-- Engine changed: give every raw message that never became a transaction another pass.
+reopenUnread:
+UPDATE message SET parsed = 0 WHERE body != '' AND id NOT IN (SELECT message_id FROM tx);
+
 unreadable:
 SELECT sender, body FROM message WHERE parsed = 1 AND body != '' AND id NOT IN (SELECT message_id FROM tx) ORDER BY received_at DESC LIMIT ?;
 

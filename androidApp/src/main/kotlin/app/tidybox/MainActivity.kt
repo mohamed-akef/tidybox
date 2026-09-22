@@ -95,6 +95,11 @@ private fun App() {
     // Import is automatic: the moment SMS is readable, history is read once. Manual ranges in
     // Settings remain for re-runs. The receiver handles everything that arrives after this.
     LaunchedEffect(granted) {
+        // New app version = possibly new templates: re-read what the old engine rejected.
+        if (EngineVersion.changed(ctx)) {
+            val n = withContext(Dispatchers.IO) { reparseUnread(Db.get(ctx), RulePacks.current(ctx), KeepRaw.get(ctx)) }
+            if (n > 0) status = ctx.getString(R.string.reparsed, n)
+        }
         reload()
         if (granted && !Imported.get(ctx)) { Imported.set(ctx); import(0) }
     }

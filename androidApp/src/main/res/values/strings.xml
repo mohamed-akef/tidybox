@@ -45,7 +45,8 @@
     <string name="scan_senders">Scan phone for sender IDs</string>
     <string name="scan_help">Sender IDs found on this phone (people are never listed). Tap to allow.</string>
     <string name="scan_none">No new sender IDs found.</string>
-    <string name="unreadable_help">Bank messages the app could not read stay unread until a template exists for that wording. Copy a masked sample (card and account digits replaced by zeros) and paste it into a GitHub issue.</string>
+    <string name="unreadable_help">Bank messages the app could not read stay unread until a template exists for that wording. Copy a masked sample (every digit becomes 0; merchant names remain) and paste it into a GitHub issue, or send it privately.</string>
     <string name="unreadable_copy">Copy 20 unreadable messages</string>
     <string name="unreadable_copied">Copied. Paste into github.com/mohamed-akef/tidybox/issues</string>
+    <string name="reparsed">Re-read stored messages: %1$d new transactions</string>
 </resources>

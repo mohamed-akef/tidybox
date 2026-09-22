@@ -184,3 +184,5 @@
 {"id": 183, "source": "nbe", "text": "تم خصم 200 EGP من بطاقة الخصم المباشر رقم2222 عندNBE ATM546 يوم03/09/26 الساعة21:13 المتاح800.00EGP للمزيد اتصل ب 10000", "expect": {"type": "purchase", "amount": 200.0, "currency": "EGP", "merchant": "NBE ATM546", "category": "?"}}
 {"id": 184, "source": "nbe", "text": "تم خصم 300 جم من بطاقة الائتمان رقم 3333 عند ASWAK FATHALLA يوم 08-31 الساعة 21:20 المتاح 7000.00 جم للمزيد اتصل ب 10000.", "expect": {"type": "purchase", "amount": 300.0, "currency": "EGP", "merchant": "ASWAK FATHALLA", "category": "?"}}
 {"id": 185, "source": "nbe", "text": "تم إضافة تحويل لحظي لحسابكم رقم 4444 بمبلغ 400.00 جم من محمد محمد رقم مرجعي 123456789012 يوم 09-10 الساعة 20:11 للمزيد اتصل بـ 10000", "expect": {"type": "transfer_in", "amount": 400.0, "currency": "EGP", "merchant": null, "category": "Transfer"}}
+{"id": 186, "source": "cib", "text": "CIB: Enjoy 20% off at Carrefour this week with your CIB credit card. Minimum purchase EGP 500. Terms and conditions apply.", "expect": null}
+{"id": 187, "source": "cib", "text": "الرقم السري المتغير الخاص بعملية الشراء بمبلغ 250.00 جم لدى AMAZON هو 123456. لا تشاركه مع أحد.", "expect": null}

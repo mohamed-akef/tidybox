@@ -55,7 +55,7 @@ private val SETTLED = Regex("(?:اجمالي|إجمالي) المبلغ المس
 /** Ordered. First hit on the first non-greeting line wins; some scan the whole text. */
 private val TYPE_RULES: List<Triple<Regex, TxType?, Rejection?>> = listOf(
     Triple(Regex("مرفوض|لا يكفي|لم يتم تنفيذ|عدم وجود رصيد"), null, Rejection.DECLINED),
-    Triple(Regex("رمز|كلمة مرور|التفعيل|التحقق"), null, Rejection.OTP),
+    Triple(Regex("رمز|كلمة مرور|التفعيل|التحقق|الرقم السري"), null, Rejection.OTP),
     Triple(Regex("^تفويض"), null, Rejection.AUTH_HOLD),
     Triple(Regex("استرداد|عكسية|استرجاع"), TxType.REFUND, null),
     Triple(Regex("راتب"), TxType.SALARY, null),
@@ -78,6 +78,8 @@ private val WHOLE_TEXT_RULES = setOf(Rejection.DECLINED, Rejection.OTP)
 private val EN_RULES: List<Triple<Regex, TxType?, Rejection?>> = listOf(
     Regex("declined|insufficient|unsuccessful|could not be (?:processed|completed)|has failed", RegexOption.IGNORE_CASE) to null to Rejection.DECLINED,
     Regex("\\bOTP\\b|one[- ]time (?:password|code)|verification code|passcode|security code", RegexOption.IGNORE_CASE) to null to Rejection.OTP,
+    // Promos quote amounts ("min purchase EGP 500"); nothing moved. Before every money rule.
+    Regex("cashback|discount|% ?off|\\boffer\\b|terms and conditions|\\benjoy\\b|promo", RegexOption.IGNORE_CASE) to null to Rejection.NO_TEMPLATE,
     Regex("refund|revers(?:ed|al)", RegexOption.IGNORE_CASE) to TxType.REFUND to null,
     Regex("salary|payroll", RegexOption.IGNORE_CASE) to TxType.SALARY to null,
     Regex("\\bATM\\b|cash withdrawal|withdrawn", RegexOption.IGNORE_CASE) to TxType.ATM_OUT to null,
