@@ -36,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -93,6 +95,11 @@ private fun App() {
     // Import is automatic: the moment SMS is readable, history is read once. Manual ranges in
     // Settings remain for re-runs. The receiver handles everything that arrives after this.
     LaunchedEffect(granted) {
+        // New app version = possibly new templates: re-read what the old engine rejected.
+        if (EngineVersion.changed(ctx)) {
+            val n = withContext(Dispatchers.IO) { reparseUnread(Db.get(ctx), RulePacks.current(ctx), KeepRaw.get(ctx)) }
+            if (n > 0) status = ctx.getString(R.string.reparsed, n)
+        }
         reload()
         if (granted && !Imported.get(ctx)) { Imported.set(ctx); import(0) }
     }
@@ -278,6 +285,15 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             }
         }
         Text(status, style = MaterialTheme.typography.bodySmall)
+        val clipboard = LocalClipboardManager.current
+        var copied by remember { mutableStateOf(false) }
+        Text(stringResource(R.string.unreadable_help), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall)
+        TextButton(onClick = {
+            scope.launch {
+                val sample = withContext(Dispatchers.IO) { unreadableSample(Db.get(ctx)) }
+                clipboard.setText(AnnotatedString(sample)); copied = sample.isNotEmpty()
+            }
+        }) { Text(stringResource(if (copied) R.string.unreadable_copied else R.string.unreadable_copy)) }
 
         Text(stringResource(R.string.senders_title), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.senders_help), style = MaterialTheme.typography.bodySmall)

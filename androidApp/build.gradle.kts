@@ -12,8 +12,8 @@ android {
         applicationId = "app.tidybox"
         minSdk = 26
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.1.3"
+        versionCode = 5
+        versionName = "0.1.4"
     }
     buildFeatures { compose = true }
     compileOptions {
@@ -48,4 +48,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
+    testImplementation("app.cash.sqldelight:sqlite-driver:2.1.0")
 }

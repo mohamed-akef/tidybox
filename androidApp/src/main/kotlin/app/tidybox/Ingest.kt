@@ -59,6 +59,30 @@ object RulePacks {
 }
 
 /** O4. Default keep: enables re-parse after a rule-pack update, "why this category", and backup. */
+/**
+ * Re-read stored messages the engine rejected. Called when the app version changes (new
+ * templates) and before every manual import. Needs "Keep raw messages"; with it off there is
+ * no body to re-read and this is a no-op.
+ * @return transactions recovered.
+ */
+fun reparseUnread(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
+    db.tidyBoxQueries.reopenUnread()
+    return parsePending(db, pack, keepRaw)
+}
+
+/** Last app version that ran the reparse; a mismatch means the engine may have new templates. */
+object EngineVersion {
+    private const val PREFS = "tidybox-privacy"
+    private const val KEY = "engine_version"
+    fun changed(context: Context): Boolean {
+        val now = context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (prefs.getLong(KEY, -1) == now) return false
+        prefs.edit().putLong(KEY, now).commit()
+        return true
+    }
+}
+
 /** Whether the one-time automatic history import has run. */
 object Imported {
     private const val PREFS = "tidybox-privacy"
@@ -162,3 +186,13 @@ fun parsePending(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
     if (!keepRaw) db.tidyBoxQueries.blankBodies()
     return found
 }
+
+/**
+ * Messages the engine could not read, digits masked, for pasting into a bug report. The user
+ * decides to share; the app only makes the sample easy to produce. Every digit becomes `0`
+ * (a template needs the shape, not the values); merchant names stay, and the help text says so.
+ */
+fun unreadableSample(db: TidyBoxDb, limit: Long = 20): String =
+    db.tidyBoxQueries.unreadable(limit).executeAsList().joinToString("\n\n") { m ->
+        "[" + m.sender + "]\n" + m.body.replace(Regex("\\d"), "0")
+    }

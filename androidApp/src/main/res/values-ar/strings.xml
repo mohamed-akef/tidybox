@@ -45,4 +45,8 @@
     <string name="scan_senders">فحص الهاتف عن معرّفات المرسلين</string>
     <string name="scan_help">معرّفات المرسلين الموجودة على هذا الهاتف (لا تُعرض أرقام الأشخاص أبدًا). اضغط للسماح.</string>
     <string name="scan_none">لم يُعثر على معرّفات جديدة.</string>
+    <string name="unreadable_help">رسائل البنك التي لم يفهمها التطبيق تبقى غير مقروءة حتى تتوفر قاعدة لصياغتها. انسخ عيّنة مموّهة (كل رقم يصبح 0؛ أسماء المتاجر تبقى) والصقها في بلاغ على GitHub أو أرسلها بشكل خاص.</string>
+    <string name="unreadable_copy">نسخ 20 رسالة غير مقروءة</string>
+    <string name="unreadable_copied">تم النسخ. الصقها في github.com/mohamed-akef/tidybox/issues</string>
+    <string name="reparsed">أُعيدت قراءة الرسائل المخزّنة: %1$d عملية جديدة</string>
 </resources>

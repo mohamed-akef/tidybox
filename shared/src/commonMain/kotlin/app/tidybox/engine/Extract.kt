@@ -31,8 +31,8 @@ sealed interface EngineResult {
 // ponytail: templates live in Kotlin for the first slice. Externalizing them to the signed
 // rule pack (D3) is its own PR; the shapes below are what that JSON will describe.
 
-private const val CUR = "(?:SAR|SR|USD|AED|MKD|EUR|GBP|ريال سعودي|ريال)"
-private const val NUM = "(\\d[\\d,]*(?:\\.\\d+)?)"
+private const val CUR = "(?:SAR|SR|USD|AED|MKD|EUR|GBP|EGP|KWD|QAR|BHD|OMR|JOD|INR|TRY|L\\.?E\\.?|ريال سعودي|ريال|جنيه مصري|جنيه|جم)"
+private const val NUM = "(\\d[\\d,]*(?:\\.\\d+)?|\\.\\d+)"
 
 /** (regex, currency-group-first). Original amount; FX settlement is captured separately. */
 private val AMOUNT = listOf(
@@ -43,6 +43,11 @@ private val AMOUNT = listOf(
     Regex("(?:شراء انترنت|شراء إنترنت|شراء)\\s+$NUM\\s*($CUR)") to false,
     Regex("بسعر\\s*$NUM\\s*($CUR)") to false,
     Regex("(?:اضافة|إضافة)\\s+$NUM\\s*($CUR)") to false,
+    Regex("خصم\\s+$NUM\\s*($CUR)") to false,
+    // English, any bank: "for EGP 118.00", "with USD 15.99", "of 50 EGP". First amount in the
+    // text is the transaction; balances and limits come later in every format seen so far.
+    Regex("\\b($CUR)\\s*$NUM", RegexOption.IGNORE_CASE) to true,
+    Regex("$NUM\\s*($CUR)\\b", RegexOption.IGNORE_CASE) to false,
     Regex("(?:المبلغ|مبلغ|بمبلغ)\\s*:?\\s*$NUM(?!\\S)") to false, // no currency at all
 )
 private val SETTLED = Regex("(?:اجمالي|إجمالي) المبلغ المستحق\\s*:?\\s*$NUM\\s*($CUR)")
@@ -50,7 +55,7 @@ private val SETTLED = Regex("(?:اجمالي|إجمالي) المبلغ المس
 /** Ordered. First hit on the first non-greeting line wins; some scan the whole text. */
 private val TYPE_RULES: List<Triple<Regex, TxType?, Rejection?>> = listOf(
     Triple(Regex("مرفوض|لا يكفي|لم يتم تنفيذ|عدم وجود رصيد"), null, Rejection.DECLINED),
-    Triple(Regex("رمز|كلمة مرور|التفعيل|التحقق"), null, Rejection.OTP),
+    Triple(Regex("رمز|كلمة مرور|التفعيل|التحقق|الرقم السري"), null, Rejection.OTP),
     Triple(Regex("^تفويض"), null, Rejection.AUTH_HOLD),
     Triple(Regex("استرداد|عكسية|استرجاع"), TxType.REFUND, null),
     Triple(Regex("راتب"), TxType.SALARY, null),
@@ -62,10 +67,36 @@ private val TYPE_RULES: List<Triple<Regex, TxType?, Rejection?>> = listOf(
     Triple(Regex("حوالة.*(وارد|واردة)|وارد.*حوالة|استلام حوالة"), TxType.TRANSFER_IN, null),
     Triple(Regex("حوالة.*(صادر|صادرة)"), TxType.TRANSFER_OUT, null),
     Triple(Regex("حوالة"), null, null), // direction decided by who is named — see below
-    Triple(Regex("ايداع|إيداع|قيد مبلغ"), TxType.DEPOSIT, null),
+    Triple(Regex("تم (?:إضافة|اضافة) تحويل"), TxType.TRANSFER_IN, null),
+    Triple(Regex("ايداع|إيداع|قيد مبلغ|تم (?:إضافة|اضافة)"), TxType.DEPOSIT, null),
+    Triple(Regex("تم خصم"), TxType.PURCHASE, null),
     Triple(Regex("شراء|مشتريات|خصم من التفويض|عملية شراء"), TxType.PURCHASE, null),
 )
 private val WHOLE_TEXT_RULES = setOf(Rejection.DECLINED, Rejection.OTP)
+
+/** English shapes, any bank; whole text, case-insensitive. Sources: CIB Egypt, generic wording. */
+private val EN_RULES: List<Triple<Regex, TxType?, Rejection?>> = listOf(
+    Regex("declined|insufficient|unsuccessful|could not be (?:processed|completed)|has failed", RegexOption.IGNORE_CASE) to null to Rejection.DECLINED,
+    Regex("\\bOTP\\b|one[- ]time (?:password|code)|verification code|passcode|security code", RegexOption.IGNORE_CASE) to null to Rejection.OTP,
+    // Promos quote amounts ("min purchase EGP 500"); nothing moved. Before every money rule.
+    Regex("cashback|discount|% ?off|\\boffer\\b|terms and conditions|\\benjoy\\b|promo", RegexOption.IGNORE_CASE) to null to Rejection.NO_TEMPLATE,
+    Regex("refund|revers(?:ed|al)", RegexOption.IGNORE_CASE) to TxType.REFUND to null,
+    Regex("salary|payroll", RegexOption.IGNORE_CASE) to TxType.SALARY to null,
+    Regex("\\bATM\\b|cash withdrawal|withdrawn", RegexOption.IGNORE_CASE) to TxType.ATM_OUT to null,
+    Regex("bill payment|paid (?:your|the) bill|recharged?\\b|top[- ]?up", RegexOption.IGNORE_CASE) to TxType.BILL to null,
+    Regex("received .{0,40}from|credited .{0,40}(?:from|by)|incoming transfer|transfer .{0,30}(?:received|credited)", RegexOption.IGNORE_CASE) to TxType.TRANSFER_IN to null,
+    Regex("(?:sent|transferred) .{0,40}\\bto\\b|outgoing transfer", RegexOption.IGNORE_CASE) to TxType.TRANSFER_OUT to null,
+    Regex("deposit|credited", RegexOption.IGNORE_CASE) to TxType.DEPOSIT to null,
+    Regex("was charged|charged for|purchase|debited|\\bspent\\b|\\bpaid\\b|(?:was|has been) used", RegexOption.IGNORE_CASE) to TxType.PURCHASE to null,
+).map { (a, b) -> Triple(a.first, a.second, b) }
+private val EN_MERCHANT = listOf(
+    Regex("\\bat\\s+(.+?)\\s+on\\s+\\d", RegexOption.IGNORE_CASE),
+    Regex("\\bfrom\\s+(.+?)\\s+with\\s+$CUR", RegexOption.IGNORE_CASE),
+    Regex("\\bat\\s+(.+?)[.,]?$", RegexOption.IGNORE_CASE),
+)
+private val EG_MERCHANT = Regex("عند\\s*(.+?)\\s+يوم")
+private val EN_CARD = Regex("(?:card|account)(?: ending)?(?: with| in)?\\s*#?\\s*(\\d{4})", RegexOption.IGNORE_CASE)
+private val EG_CARD = Regex("رقم\\s*(\\d{4})")
 private val GREETING = Regex("^(هلا|عميلنا العزيز|عزيزي|عزيزنا)")
 private val NAMED_SENDER = Regex("^من\\s*:\\s*\\S", RegexOption.MULTILINE)
 private val NUMERIC_SENDER = Regex("^من\\s*:?\\s*\\d{4}$", RegexOption.MULTILINE)
@@ -90,8 +121,9 @@ private val DATES: List<Pair<Regex, (List<Int>) -> LocalDateTime>> = listOf(
     Regex("(\\d{1,2}):(\\d{2})\\s+(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})") to { g -> LocalDateTime(g[2], g[3], g[4], g[0], g[1]) },
     Regex("(\\d{1,2}):(\\d{2})\\s+(\\d{2})[-/](\\d{1,2})[-/](\\d{1,2})") to { g -> LocalDateTime(2000 + g[2], g[3], g[4], g[0], g[1]) },
     Regex("(\\d{2})[-/\\\\](\\d{1,2})[-/\\\\](\\d{1,2})\\s+(\\d{1,2}):(\\d{2})") to { g -> LocalDateTime(2000 + g[0], g[1], g[2], g[3], g[4]) },
+    Regex("(\\d{1,2})/(\\d{1,2})/(\\d{2})\\s*الساعة\\s*(\\d{1,2}):(\\d{2})") to { g -> LocalDateTime(2000 + g[2], g[1], g[0], g[3], g[4]) }, // NBE: "يوم03/09/26 الساعة21:13"
     // ponytail: d/m/yy vs yy-m-d is ambiguous for day<=12; per-bank date format belongs in the rule pack
-    Regex("(\\d{1,2})[-/\\\\](\\d{1,2})[-/\\\\](\\d{2})\\s+(\\d{1,2}):(\\d{2})") to { g -> LocalDateTime(2000 + g[2], g[1], g[0], g[3], g[4]) },
+    Regex("(\\d{1,2})[-/\\\\](\\d{1,2})[-/\\\\](\\d{2})\\s+(?:at\\s+)?(\\d{1,2}):(\\d{2})") to { g -> LocalDateTime(2000 + g[2], g[1], g[0], g[3], g[4]) },
 )
 
 private fun parseDate(t: String): LocalDateTime? {
@@ -103,9 +135,10 @@ private fun parseDate(t: String): LocalDateTime? {
     return null
 }
 
-private fun canonCurrency(c: String?) = when (c) {
-    null, "SR", "ريال", "ريال سعودي" -> "SAR"
-    else -> c
+private fun canonCurrency(c: String?) = when (c?.uppercase()) {
+    null, "SR", "ريال", "ريال سعودي" -> "SAR" // ponytail: no-currency default is Saudi; per-bank default belongs in the rule pack
+    "جم", "جنيه", "جنيه مصري", "LE", "L.E", "L.E." -> "EGP"
+    else -> c.uppercase()
 }
 
 /** The engine's one entry point. Pure: same text in, same result out, no clock, no I/O. */
@@ -126,6 +159,12 @@ fun extract(raw: String): EngineResult {
     }
     if (undecidedTransfer) {
         type = if (NAMED_SENDER.containsMatchIn(t) && !NUMERIC_SENDER.containsMatchIn(t)) TxType.TRANSFER_IN else TxType.TRANSFER_OUT
+    }
+    if (type == null) for ((re, tx, rej) in EN_RULES) {
+        if (!re.containsMatchIn(t)) continue
+        if (rej != null) return EngineResult.Rejected(rej)
+        type = tx
+        break
     }
     if (type == null) return EngineResult.Rejected(Rejection.NO_TEMPLATE)
 
@@ -152,6 +191,8 @@ fun extract(raw: String): EngineResult {
                 break@outer
             }
         }
+        if (merchant == null) merchant = (EN_MERCHANT.asSequence().mapNotNull { it.find(t)?.groupValues?.get(1) }.firstOrNull() ?: EG_MERCHANT.find(t)?.groupValues?.get(1))
+            ?.trim(' ', '.', ';', ':')?.takeUnless { NOT_MERCHANT.matches(it) }
     }
     val settled = SETTLED.find(t)?.let { it.groupValues[1].toDouble() to canonCurrency(it.groupValues[2]) }
     return EngineResult.Parsed(
@@ -160,7 +201,7 @@ fun extract(raw: String): EngineResult {
             amount = amount,
             currency = canonCurrency(currency),
             merchant = merchant,
-            cardLast4 = CARD.find(t)?.groupValues?.get(1),
+            cardLast4 = (CARD.find(t) ?: EN_CARD.find(t) ?: EG_CARD.find(t))?.groupValues?.get(1),
             occurredAt = parseDate(t),
             settled = settled,
         )

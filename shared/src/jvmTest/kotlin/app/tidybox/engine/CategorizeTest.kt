@@ -37,7 +37,8 @@ class CategorizeTest {
     @Test
     fun merchantRowsMatchTheSpike() {
         // 50 purchase/refund rows with a merchant: spike scored 29 correct / 0 wrong / 21 abstain.
-        val merchantRows = rows.filter { it.expect!!.type in setOf("purchase", "refund") && it.expect!!.merchant != null }
+        // Frozen to the spike's 174 rows (ids 0..173); later corpus additions are asserted by neverWrong only.
+        val merchantRows = rows.filter { it.id < 174 && it.expect!!.type in setOf("purchase", "refund") && it.expect!!.merchant != null }
         val b = merchantRows.map(::bucket)
         assertEquals(50, merchantRows.size)
         assertEquals(29 to 21, b.count { it == "correct" } to b.count { it == "abstain" })
