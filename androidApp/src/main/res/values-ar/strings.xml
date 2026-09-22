@@ -37,4 +37,5 @@
     <string name="rulepack_load">تحميل ملف حزمة</string>
     <string name="rulepack_reset">استخدام المضمّنة</string>
     <string name="rulepack_bad">ملف حزمة غير صالح</string>
+    <string name="fx_excluded">%1$d عملية بعملة أخرى معروضة ولم تُحتسب في هذه المجاميع.</string>
 </resources>
