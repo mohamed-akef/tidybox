@@ -59,4 +59,6 @@
     <string name="from_sender">من %1$s</string>
     <string name="message_not_kept">لم يُحتفظ بنص الرسالة (الإعدادات ← الخصوصية).</string>
     <string name="remove_transaction">إزالة من Tidy Box</string>
+    <string name="older_month">الشهر الأقدم</string>
+    <string name="newer_month">الشهر الأحدث</string>
 </resources>

@@ -59,4 +59,6 @@
     <string name="from_sender">From %1$s</string>
     <string name="message_not_kept">Message text was not kept (Settings → Privacy).</string>
     <string name="remove_transaction">Remove from Tidy Box</string>
+    <string name="older_month">Older month</string>
+    <string name="newer_month">Newer month</string>
 </resources>

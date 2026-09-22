@@ -3,7 +3,25 @@ package app.tidybox
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Build
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,13 +29,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -89,15 +103,7 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            val dark = isSystemInDarkTheme()
-            val scheme = when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> if (dark) dynamicDarkColorScheme(this) else dynamicLightColorScheme(this)
-                dark -> darkColorScheme()
-                else -> lightColorScheme()
-            }
-            MaterialTheme(colorScheme = scheme) { App() }
-        }
+        setContent { TidyTheme { App() } }
     }
 }
 
@@ -108,6 +114,59 @@ private const val DAY = 86_400_000L
 
 private fun RecentTx.month(): String =
     occurred_at?.take(7) ?: SimpleDateFormat("yyyy-MM", Locale.US).format(Date(received_at))
+
+// ---------------------------------------------------------------- look
+// A ledger, not a neon wallet: ink on cool paper, one brand green, brick for money out. The same
+// on every phone (no wallpaper-derived colours), so screenshots and support match what users see.
+private val Green = Color(0xFF146C5A)
+private val GreenSoft = Color(0xFFD5EDE3)
+private val Brick = Color(0xFFB9422C)
+private val Ink = Color(0xFF16201B)
+private val Paper = Color(0xFFF6F7F5)
+private val PaperRaised = Color(0xFFFFFFFF)
+private val Mist = Color(0xFFE6EAE7)
+private val Night = Color(0xFF000000)
+private val NightRaised = Color(0xFF15191A)
+private val NightMist = Color(0xFF232A2B)
+
+private val LightScheme = lightColorScheme(
+    primary = Green, onPrimary = Color.White, primaryContainer = GreenSoft, onPrimaryContainer = Ink,
+    secondaryContainer = Mist, onSecondaryContainer = Ink, tertiary = Green,
+    error = Brick, background = Paper, onBackground = Ink, surface = Paper, onSurface = Ink,
+    surfaceVariant = Mist, onSurfaceVariant = Color(0xFF5B6660), outlineVariant = Mist,
+    surfaceContainer = PaperRaised, surfaceContainerHigh = PaperRaised, surfaceContainerLow = PaperRaised,
+)
+private val DarkScheme = darkColorScheme(
+    primary = Color(0xFF7FD1B4), onPrimary = Ink, primaryContainer = Color(0xFF1E4A3F), onPrimaryContainer = Color(0xFFD5EDE3),
+    secondaryContainer = NightMist, onSecondaryContainer = Color(0xFFE6EAE7), tertiary = Color(0xFF7FD1B4),
+    error = Color(0xFFF0907A), background = Night, onBackground = Color(0xFFEDEFEE), surface = Night, onSurface = Color(0xFFEDEFEE),
+    surfaceVariant = NightMist, onSurfaceVariant = Color(0xFFA5AFAA), outlineVariant = NightMist,
+    surfaceContainer = NightRaised, surfaceContainerHigh = NightMist, surfaceContainerLow = NightRaised,
+)
+
+/** Money is set in tabular figures so columns of amounts line up. */
+private val TextStyle.tabular get() = copy(fontFeatureSettings = "tnum")
+
+@Composable
+private fun TidyTheme(content: @Composable () -> Unit) {
+    val base = MaterialTheme.typography
+    val typography = base.copy(
+        displaySmall = base.displaySmall.copy(fontWeight = FontWeight.Medium, letterSpacing = (-0.5).sp),
+        headlineSmall = base.headlineSmall.copy(fontWeight = FontWeight.Medium),
+        titleLarge = base.titleLarge.copy(fontWeight = FontWeight.Medium),
+    )
+    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) DarkScheme else LightScheme, typography = typography, content = content)
+}
+
+// Category colours: one per category, used for the bar, the avatar tint and the chip dot.
+private val CATEGORY_COLOR = mapOf(
+    "Cash" to Color(0xFF6B7280), "Finance" to Color(0xFF3B5BDB), "Food" to Color(0xFFE8590C), "Fuel" to Color(0xFF7A5230),
+    "Government" to Color(0xFF495057), "Groceries" to Color(0xFF2F9E44), "Health" to Color(0xFFE03131), "Income" to Color(0xFF1E8E5A),
+    "Other" to Color(0xFF868E96), "Services" to Color(0xFF0B7285), "Shopping" to Color(0xFFC2255C), "Software" to Color(0xFF6741D9),
+    "Telecom" to Color(0xFF1971C2), "Transfer" to Color(0xFF0CA678), "Transport" to Color(0xFFF08C00), "Travel" to Color(0xFF1098AD),
+)
+private val UNCATEGORIZED_COLOR = Color(0xFFADB5BD)
+private fun categoryColor(cat: String?) = CATEGORY_COLOR[cat] ?: UNCATEGORIZED_COLOR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,14 +209,17 @@ private fun App() {
         TxSheet(t, onDismiss = { picking = null }, onChanged = { reload() })
     }
 
+    BackHandler(enabled = settings) { settings = false }
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text(stringResource(if (settings) R.string.settings else R.string.app_name)) },
-            actions = { TextButton(onClick = { settings = !settings }) { Text(stringResource(if (settings) R.string.inbox else R.string.settings)) } },
+            title = { Text(stringResource(if (settings) R.string.settings else R.string.app_name), style = MaterialTheme.typography.titleLarge) },
+            navigationIcon = { if (settings) IconButton(onClick = { settings = false }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.inbox)) } },
+            actions = { if (!settings) IconButton(onClick = { settings = true }) { Icon(Icons.Outlined.Settings, stringResource(R.string.settings)) } },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
         )
     }) { pad ->
-        if (settings) Settings(Modifier.padding(pad).padding(12.dp), granted, status, ::import, onReload = ::reload)
-        else Inbox(Modifier.padding(pad).padding(12.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
+        if (settings) Settings(Modifier.padding(pad).padding(horizontal = 20.dp), granted, status, ::import, onReload = ::reload)
+        else Inbox(Modifier.padding(pad).padding(horizontal = 16.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
     }
 }
 
@@ -168,6 +230,7 @@ private val CATEGORY_EMOJI = mapOf(
 )
 private val MONEY: NumberFormat = NumberFormat.getNumberInstance(Locale.getDefault()).apply { minimumFractionDigits = 2; maximumFractionDigits = 2 }
 private fun money(v: Double): String = MONEY.format(v)
+private fun whole(v: Double): String = NumberFormat.getIntegerInstance(Locale.getDefault()).format(Math.round(v))
 
 private fun RecentTx.day(): LocalDate =
     occurred_at?.let { runCatching { LocalDate.parse(it.take(10)) }.getOrNull() }
@@ -180,11 +243,20 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, st
     val uncategorized = stringResource(R.string.uncategorized)
     val today = LocalDate.now()
     val dayFmt = DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.getDefault())
+    // One month on screen at a time, newest first; ‹ › in the summary move through history.
+    val months = remember(rows) { rows.groupBy { it.month() }.toSortedMap(reverseOrder()) }
+    val keys = months.keys.toList()
+    var monthIdx by rememberSaveable { mutableIntStateOf(0) }
+    val idx = monthIdx.coerceIn(0, maxOf(0, keys.size - 1))
+    val month = keys.getOrNull(idx)
+    val txs = month?.let { months[it] }.orEmpty()
+    val mainCurrency = txs.groupingBy { it.currency }.eachCount().maxByOrNull { it.value }?.key
+
     LazyColumn(modifier, contentPadding = PaddingValues(bottom = 32.dp)) {
         if (!granted) item {
-            Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.privacy_line), style = MaterialTheme.typography.bodyMedium)
+            Surface(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp), shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                Column(Modifier.padding(20.dp)) {
+                    Text(stringResource(R.string.privacy_line), style = MaterialTheme.typography.bodyLarge)
                     Button(onClick = onAsk, Modifier.padding(top = 12.dp)) { Text(stringResource(R.string.allow_sms)) }
                     Text(stringResource(R.string.android15_note), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall)
                 }
@@ -203,8 +275,12 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, st
                 }
             }
         }
-        rows.groupBy { it.month() }.toSortedMap(reverseOrder()).forEach { (month, txs) ->
-            item(key = "m-$month") { MonthCard(month, txs, uncategorized) }
+        if (month != null) {
+            item(key = "m-$month") {
+                MonthSummary(month, txs, mainCurrency ?: "", uncategorized,
+                    hasNewer = idx > 0, hasOlder = idx < keys.size - 1,
+                    onNewer = { monthIdx = idx - 1 }, onOlder = { monthIdx = idx + 1 })
+            }
             txs.groupBy { it.day() }.toSortedMap(reverseOrder()).forEach { (day, dayTxs) ->
                 item(key = "d-$day") {
                     val label = when (day) {
@@ -212,83 +288,93 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, st
                         today.minusDays(1) -> stringResource(R.string.yesterday)
                         else -> day.format(dayFmt)
                     }
-                    Text(label, Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(label, Modifier.padding(start = 4.dp, top = 20.dp, bottom = 6.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                items(dayTxs, key = { it.id }) { t -> TxRow(t, uncategorized, onPick) }
+                items(dayTxs, key = { it.id }) { t -> TxRow(t, uncategorized, mainCurrency, onPick) }
             }
         }
     }
 }
 
 @Composable
-private fun TxRow(t: RecentTx, uncategorized: String, onPick: (RecentTx) -> Unit) {
+private fun TxRow(t: RecentTx, uncategorized: String, mainCurrency: String?, onPick: (RecentTx) -> Unit) {
     val name = t.merchant ?: t.type.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
     val category = t.category ?: uncategorized
-    val emoji = CATEGORY_EMOJI[t.category] ?: name.first().uppercase()
+    val tint = categoryColor(t.category)
     val (sign, color) = when (t.type) {
         in EXPENSE -> "−" to MaterialTheme.colorScheme.error
         in INCOME -> "+" to MaterialTheme.colorScheme.tertiary
         else -> "" to MaterialTheme.colorScheme.onSurface
     }
     ListItem(
-        modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable { onPick(t) },
+        modifier = Modifier.padding(vertical = 2.dp).clip(RoundedCornerShape(16.dp)).clickable { onPick(t) },
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         leadingContent = {
-            Surface(Modifier.size(44.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
-                Box(contentAlignment = Alignment.Center) { Text(emoji, style = MaterialTheme.typography.titleMedium) }
+            Box(Modifier.size(44.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                Text(CATEGORY_EMOJI[t.category] ?: name.first().uppercase(), style = MaterialTheme.typography.titleMedium, color = tint)
             }
         },
         headlineContent = { Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyLarge) },
         supportingContent = { Text("$category · ${t.time()}", style = MaterialTheme.typography.bodySmall) },
         trailingContent = {
             Column(horizontalAlignment = Alignment.End) {
-                Text(sign + money(t.amount), style = MaterialTheme.typography.titleMedium, color = color)
-                Text(t.currency, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(sign + money(t.amount), style = MaterialTheme.typography.titleMedium.tabular, color = color)
+                if (t.currency != mainCurrency) Text(t.currency, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
     )
 }
 
 /**
- * Month totals in the month's main currency (the one most rows carry). Rows in other currencies
- * are listed, never converted or summed (design §7); the card says how many were left out.
+ * The month at a glance: totals in the month's main currency, then the tidy box — one bar,
+ * every category in proportion — with every category chip visible (wrapped, never scrolled).
+ * Rows in other currencies are listed, never converted or summed (design §7); the note says so.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MonthCard(month: String, txs: List<RecentTx>, uncategorized: String) {
-    val main = txs.groupingBy { it.currency }.eachCount().maxByOrNull { it.value }?.key ?: "SAR"
+private fun MonthSummary(month: String, txs: List<RecentTx>, main: String, uncategorized: String, hasNewer: Boolean, hasOlder: Boolean, onNewer: () -> Unit, onOlder: () -> Unit) {
     val inMain = txs.filter { it.currency == main }
     val spent = inMain.filter { it.type in EXPENSE }.sumOf { it.amount }
     val received = inMain.filter { it.type in INCOME }.sumOf { it.amount }
-    val byCat = inMain.filter { it.type in EXPENSE }.groupBy { it.category ?: uncategorized }
-        .mapValues { it.value.sumOf { t -> t.amount } }.entries.sortedByDescending { it.value }.take(4)
+    val byCat = inMain.filter { it.type in EXPENSE }.groupBy { it.category }
+        .mapValues { it.value.sumOf { t -> t.amount } }.entries.sortedByDescending { it.value }
     val fx = txs.size - inMain.size
     val title = runCatching { YearMonth.parse(month).format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())) }.getOrDefault(month)
-    Card(
-        Modifier.fillMaxWidth().padding(top = 16.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        Column(Modifier.padding(20.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-            Row(Modifier.fillMaxWidth().padding(top = 12.dp)) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.spent), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    Text("−${money(spent)}", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.error)
-                    Text(main, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(stringResource(R.string.received), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    Text("+${money(received)}", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.tertiary)
-                    Text(main, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                }
-            }
-            if (byCat.isNotEmpty()) Row(Modifier.fillMaxWidth().padding(top = 12.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for ((cat, sum) in byCat) Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface) {
-                    Text("${CATEGORY_EMOJI[cat] ?: "•"} $cat ${money(sum)}", Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium)
-                }
-            }
-            // A total that silently omits rows is a wrong total. Say so rather than convert (design §7).
-            if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+    Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onOlder, enabled = hasOlder) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.older_month)) }
+            Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+            IconButton(onClick = onNewer, enabled = hasNewer) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.newer_month)) }
         }
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.spent), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("−${money(spent)}", style = MaterialTheme.typography.displaySmall.tabular, color = MaterialTheme.colorScheme.error, maxLines = 1)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(stringResource(R.string.received), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("+${money(received)}", style = MaterialTheme.typography.headlineSmall.tabular, color = MaterialTheme.colorScheme.tertiary, maxLines = 1)
+            }
+        }
+        Text(main, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (byCat.isNotEmpty()) {
+            // The tidy box: spend as one bar, each category a segment in proportion.
+            Row(Modifier.fillMaxWidth().padding(top = 16.dp).height(12.dp).clip(RoundedCornerShape(6.dp)), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                for ((cat, sum) in byCat) Box(Modifier.weight((sum / spent).toFloat().coerceAtLeast(0.01f)).fillMaxHeight().background(categoryColor(cat)))
+            }
+            FlowRow(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                for ((cat, sum) in byCat) Row(
+                    Modifier.clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 10.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(categoryColor(cat)))
+                    Text("${CATEGORY_EMOJI[cat] ?: ""} ${cat ?: uncategorized}".trim(), Modifier.padding(start = 6.dp), style = MaterialTheme.typography.labelMedium)
+                    Text(whole(sum), Modifier.padding(start = 6.dp), style = MaterialTheme.typography.labelMedium.tabular, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), Modifier.padding(top = 10.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        HorizontalDivider(Modifier.padding(top = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
@@ -358,6 +444,10 @@ private fun TxSheet(txId: Long, onDismiss: () -> Unit, onChanged: () -> Unit) {
 }
 
 @Composable
+private fun Section(title: String) =
+    Text(title, Modifier.padding(top = 28.dp, bottom = 4.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+
+@Composable
 private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImport: (Long) -> Unit, onReload: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -409,7 +499,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
     }
     var keepRaw by remember { mutableStateOf(KeepRaw.get(ctx)) }
     Column(modifier) {
-        Text(stringResource(R.string.privacy_title), style = MaterialTheme.typography.titleMedium)
+        Section(stringResource(R.string.privacy_title))
         Row(Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.keep_raw), Modifier.weight(1f).padding(top = 12.dp))
             Switch(checked = keepRaw, onCheckedChange = { on ->
@@ -419,7 +509,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         }
         Text(stringResource(R.string.keep_raw_help), style = MaterialTheme.typography.bodySmall)
 
-        Text(stringResource(R.string.rulepack_title), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
+        Section(stringResource(R.string.rulepack_title))
         Text(stringResource(R.string.rulepack_help), style = MaterialTheme.typography.bodySmall)
         Text(stringResource(R.string.rulepack_current, pack.name, pack.version), style = MaterialTheme.typography.bodySmall)
         Row {
@@ -431,7 +521,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             Text(packStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
 
-        Text(stringResource(R.string.backup_title), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
+        Section(stringResource(R.string.backup_title))
         Text(stringResource(R.string.backup_help), style = MaterialTheme.typography.bodySmall)
         OutlinedTextField(passphrase, { passphrase = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.passphrase)) }, singleLine = true,
             visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
@@ -443,7 +533,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         }
         if (!keepRaw) Text(stringResource(R.string.backup_needs_raw), style = MaterialTheme.typography.bodySmall)
 
-        Text(stringResource(R.string.import_history), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
+        Section(stringResource(R.string.import_history))
         Row {
             for ((label, since) in listOf(R.string.range_1m to now - 30 * DAY, R.string.range_3m to now - 90 * DAY, R.string.range_12m to now - 365 * DAY, R.string.range_all to 0L)) {
                 TextButton(enabled = granted, onClick = { onImport(since) }) { Text(stringResource(label)) }
@@ -460,7 +550,7 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             }
         }) { Text(stringResource(if (copied) R.string.unreadable_copied else R.string.unreadable_copy)) }
 
-        Text(stringResource(R.string.senders_title), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
+        Section(stringResource(R.string.senders_title))
         Text(stringResource(R.string.senders_help), style = MaterialTheme.typography.bodySmall)
         Row(Modifier.fillMaxWidth()) {
             OutlinedTextField(newSender, { newSender = it }, Modifier.weight(1f), label = { Text(stringResource(R.string.sender_add)) }, singleLine = true)
