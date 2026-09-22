@@ -78,15 +78,25 @@ private fun App() {
     var picking by remember { mutableStateOf<RecentTx?>(null) }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted = it.values.all { v -> v } }
 
+    var seen by remember { mutableStateOf(emptyList<String>()) }
+
     fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).tidyBoxQueries.recentTx().executeAsList() } } }
-    LaunchedEffect(Unit) { reload() }
     fun import(sinceMillis: Long) {
         scope.launch {
             val (n, found) = withContext(Dispatchers.IO) { backfill(ctx, sinceMillis) { c -> scope.launch { status = ctx.getString(R.string.importing, c) } } }
             status = ctx.getString(R.string.imported, n, found)
             reload()
+            // Nothing landed: show the sender IDs on the phone so one tap fixes the allowlist.
+            seen = if (found == 0) withContext(Dispatchers.IO) { seenSenders(ctx) } else emptyList()
         }
     }
+    // Import is automatic: the moment SMS is readable, history is read once. Manual ranges in
+    // Settings remain for re-runs. The receiver handles everything that arrives after this.
+    LaunchedEffect(granted) {
+        reload()
+        if (granted && !Imported.get(ctx)) { Imported.set(ctx); import(0) }
+    }
+    fun allow(id: String) { Senders.set(ctx, Senders.get(ctx) + id); import(0) }
 
     picking?.let { t ->
         AlertDialog(
@@ -114,12 +124,12 @@ private fun App() {
         )
     }) { pad ->
         if (settings) Settings(Modifier.padding(pad).padding(12.dp), granted, status, ::import, onReload = ::reload)
-        else Inbox(Modifier.padding(pad).padding(12.dp), granted, rows, onAsk = { ask.launch(PERMS) }, onPick = { picking = it })
+        else Inbox(Modifier.padding(pad).padding(12.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it }, onAllow = ::allow)
     }
 }
 
 @Composable
-private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, onAsk: () -> Unit, onPick: (RecentTx) -> Unit) {
+private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, status: String, seen: List<String>, onAsk: () -> Unit, onPick: (RecentTx) -> Unit, onAllow: (String) -> Unit) {
     val uncategorized = stringResource(R.string.uncategorized)
     Column(modifier) {
         if (!granted) {
@@ -127,7 +137,16 @@ private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, on
             Button(onClick = onAsk) { Text(stringResource(R.string.allow_sms)) }
             Text(stringResource(R.string.android15_note), style = MaterialTheme.typography.bodySmall)
         }
-        if (rows.isEmpty()) Text(stringResource(R.string.empty), Modifier.padding(top = 24.dp))
+        if (rows.isEmpty()) {
+            Text(stringResource(R.string.empty), Modifier.padding(top = 24.dp))
+            Text(status, style = MaterialTheme.typography.bodySmall)
+            if (seen.isNotEmpty()) {
+                Text(stringResource(R.string.scan_help), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+                    for (id in seen) TextButton(onClick = { onAllow(id) }) { Text("+ $id") }
+                }
+            }
+        }
         LazyColumn {
             rows.groupBy { it.month() }.toSortedMap(reverseOrder()).forEach { (month, txs) ->
                 item(key = "m-$month") { MonthHeader(month, txs, uncategorized) }
