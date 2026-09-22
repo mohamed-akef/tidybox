@@ -67,6 +67,7 @@ object RulePacks {
  * @return transactions recovered.
  */
 fun reparseUnread(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
+    refreshParsed(db, pack)
     db.tidyBoxQueries.clearImplausibleDates()
     db.tidyBoxQueries.hideDuplicateTx()
     db.tidyBoxQueries.reopenUnread()
@@ -90,6 +91,25 @@ private fun plausible(d: app.tidybox.engine.LocalDateTime, receivedAt: Long): Bo
     val at = java.time.LocalDateTime.of(d.year, d.month, d.day, d.hour, d.minute).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
     at <= receivedAt + 86_400_000L && at >= receivedAt - 366L * 86_400_000L
 }.getOrDefault(false)
+
+/**
+ * Re-read the stored text of rows that already became transactions, so a template fix repairs
+ * merchant, card and date on history too. Type and amount are left as they are (the user may
+ * have set the direction); rows the user categorized by hand are skipped entirely.
+ */
+fun refreshParsed(db: TidyBoxDb, pack: RulePack) {
+    db.transaction {
+        for (r in db.tidyBoxQueries.txForRefresh().executeAsList()) {
+            val tx = (extract(r.body, pack) as? EngineResult.Parsed)?.tx ?: continue
+            db.tidyBoxQueries.refreshTx(
+                tx.merchant, tx.merchant?.let(::normalizeMerchant), tx.cardLast4,
+                tx.occurredAt?.takeIf { plausible(it, r.received_at) }?.let { "%04d-%02d-%02d %02d:%02d".format(it.year, it.month, it.day, it.hour, it.minute) },
+                r.id,
+            )
+        }
+    }
+    recategorizeAll(db, pack)
+}
 
 /** Whether the one-time automatic history import has run. */
 object Imported {

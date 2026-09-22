@@ -76,3 +76,13 @@ class TemplatesTest {
         assertFailsWith<IllegalArgumentException> { RulePack.parse("""{$base,"templates":{"currency":"x","number":"x","types":[{"re":"a","type":"NOPE"}],"amount":[]}}""") }
     }
 }
+
+class CibDebitDateTest {
+    @Test
+    fun cibDebitDateIsDayMonthYear() {
+        val tx = (extract("تم خصم مبلغ EGP 5135.00  من بطاقة الخصم المباشر المنتهية بـ **6538 عند FAWRY IKEA CFC في 19/09/26 14:08 ، الرصيد المتاح EGP 3927.34") as EngineResult.Parsed).tx
+        assertEquals(LocalDateTime(2026, 9, 19, 14, 8), tx.occurredAt)
+        assertEquals("FAWRY IKEA CFC", tx.merchant)
+        assertEquals("6538", tx.cardLast4)
+    }
+}
