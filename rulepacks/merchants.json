@@ -303,6 +303,20 @@
         "reject": "AUTH_HOLD"
       },
       {
+        "re": "تسجيل الدخول|عيد ميلاد|تطبق الشروط والأحكام|خصم \\d+٪|غير متاحة",
+        "reject": "NO_TEMPLATE",
+        "scope": "whole"
+      },
+      {
+        "re": "تم استلام الطلب لرد",
+        "reject": "NO_TEMPLATE",
+        "scope": "whole"
+      },
+      {
+        "re": "لقد تم رد|تم رد مبلغ",
+        "type": "REFUND"
+      },
+      {
         "re": "استرداد|عكسية|استرجاع",
         "type": "REFUND"
       },
@@ -326,6 +340,14 @@
         "re": "تنفيذ عملية شراء شركة|سهم",
         "type": "INVESTMENT",
         "scope": "whole"
+      },
+      {
+        "re": "تم استلام مبلغ",
+        "type": "TRANSFER_IN"
+      },
+      {
+        "re": "تم تنفيذ تحويل",
+        "type": "TRANSFER_OUT"
       },
       {
         "re": "حوالة بين حساباتك",
@@ -372,12 +394,6 @@
         "flags": "i"
       },
       {
-        "re": "cashback|discount|% ?off|\\boffer\\b|terms and conditions|\\benjoy\\b|promo",
-        "reject": "NO_TEMPLATE",
-        "scope": "whole",
-        "flags": "i"
-      },
-      {
         "re": "refund|revers(?:ed|al)",
         "type": "REFUND",
         "scope": "whole",
@@ -408,8 +424,20 @@
         "flags": "i"
       },
       {
-        "re": "(?:sent|transferred) .{0,40}\\bto\\b|outgoing transfer",
+        "re": "transfer .{0,40}deducted|(?:sent|transferred) .{0,40}\\bto\\b|outgoing transfer",
         "type": "TRANSFER_OUT",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "was charged|charged for|debited|deducted",
+        "type": "PURCHASE",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "cashback|discount|% ?off|\\boffer\\b|terms and conditions|\\benjoy\\b|promo|points as a gift",
+        "reject": "NO_TEMPLATE",
         "scope": "whole",
         "flags": "i"
       },
@@ -420,7 +448,7 @@
         "flags": "i"
       },
       {
-        "re": "was charged|charged for|purchase|debited|\\bspent\\b|\\bpaid\\b|(?:was|has been) used",
+        "re": "purchase|\\bspent\\b|\\bpaid\\b|(?:was|has been) used",
         "type": "PURCHASE",
         "scope": "whole",
         "flags": "i"
@@ -524,6 +552,10 @@
       {
         "re": "عند\\s*(.+?)\\s+يوم",
         "scope": "whole"
+      },
+      {
+        "re": "\\bمن\\s+([^>\\n]+?)\\s*>",
+        "scope": "whole"
       }
     ],
     "notMerchant": "^[\\s:]*(?:[\\d*x#]+|حساب.*|البائع.*)$",
@@ -537,6 +569,9 @@
       },
       {
         "re": "رقم\\s*(\\d{4})"
+      },
+      {
+        "re": "المنتهي(?:ة)? بـ\\s*#?\\s*\\**\\s*(\\d{4})"
       }
     ],
     "dates": [
@@ -563,6 +598,10 @@
       {
         "re": "(\\d{1,2})[-/\\\\](\\d{1,2})[-/\\\\](\\d{2})\\s+(?:at\\s+)?(\\d{1,2}):(\\d{2})",
         "order": "DMyhm"
+      },
+      {
+        "re": "(\\d{1,2})-(\\d{1,2})-(\\d{4})\\s+(\\d{1,2}):(\\d{2})",
+        "order": "DMYhm"
       }
     ]
   }
