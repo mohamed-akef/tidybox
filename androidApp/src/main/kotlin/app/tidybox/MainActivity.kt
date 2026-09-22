@@ -3,6 +3,32 @@ package app.tidybox
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Surface
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import java.text.NumberFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -19,7 +45,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -56,7 +81,15 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MaterialTheme { App() } }
+        setContent {
+            val dark = isSystemInDarkTheme()
+            val scheme = when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> if (dark) dynamicDarkColorScheme(this) else dynamicLightColorScheme(this)
+                dark -> darkColorScheme()
+                else -> lightColorScheme()
+            }
+            MaterialTheme(colorScheme = scheme) { App() }
+        }
     }
 }
 
@@ -135,61 +168,134 @@ private fun App() {
     }
 }
 
+private val CATEGORY_EMOJI = mapOf(
+    "Cash" to "💵", "Finance" to "🏦", "Food" to "🍔", "Fuel" to "⛽", "Government" to "🏛️", "Groceries" to "🛒",
+    "Health" to "🩺", "Income" to "💼", "Other" to "📦", "Services" to "🛠️", "Shopping" to "🛍️", "Software" to "💻",
+    "Telecom" to "📱", "Transfer" to "🔁", "Transport" to "🚕", "Travel" to "✈️",
+)
+private val MONEY: NumberFormat = NumberFormat.getNumberInstance(Locale.getDefault()).apply { minimumFractionDigits = 2; maximumFractionDigits = 2 }
+private fun money(v: Double): String = MONEY.format(v)
+
+private fun RecentTx.day(): LocalDate =
+    occurred_at?.let { runCatching { LocalDate.parse(it.take(10)) }.getOrNull() }
+        ?: Instant.ofEpochMilli(received_at).atZone(ZoneId.systemDefault()).toLocalDate()
+private fun RecentTx.time(): String = occurred_at?.drop(11)?.take(5)
+    ?: Instant.ofEpochMilli(received_at).atZone(ZoneId.systemDefault()).toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))
+
 @Composable
 private fun Inbox(modifier: Modifier, granted: Boolean, rows: List<RecentTx>, status: String, seen: List<String>, onAsk: () -> Unit, onPick: (RecentTx) -> Unit, onAllow: (String) -> Unit) {
     val uncategorized = stringResource(R.string.uncategorized)
-    Column(modifier) {
-        if (!granted) {
-            Text(stringResource(R.string.privacy_line))
-            Button(onClick = onAsk) { Text(stringResource(R.string.allow_sms)) }
-            Text(stringResource(R.string.android15_note), style = MaterialTheme.typography.bodySmall)
-        }
-        if (rows.isEmpty()) {
-            Text(stringResource(R.string.empty), Modifier.padding(top = 24.dp))
-            Text(status, style = MaterialTheme.typography.bodySmall)
-            if (seen.isNotEmpty()) {
-                Text(stringResource(R.string.scan_help), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                    for (id in seen) TextButton(onClick = { onAllow(id) }) { Text("+ $id") }
+    val today = LocalDate.now()
+    val dayFmt = DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.getDefault())
+    LazyColumn(modifier, contentPadding = PaddingValues(bottom = 32.dp)) {
+        if (!granted) item {
+            Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.privacy_line), style = MaterialTheme.typography.bodyMedium)
+                    Button(onClick = onAsk, Modifier.padding(top = 12.dp)) { Text(stringResource(R.string.allow_sms)) }
+                    Text(stringResource(R.string.android15_note), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
-        LazyColumn {
-            rows.groupBy { it.month() }.toSortedMap(reverseOrder()).forEach { (month, txs) ->
-                item(key = "m-$month") { MonthHeader(month, txs, uncategorized) }
-                items(txs, key = { it.id }) { t ->
-                    Column(Modifier.fillMaxWidth().clickable(enabled = t.merchant_key != null) { onPick(t) }.padding(vertical = 8.dp)) {
-                        Row(Modifier.fillMaxWidth()) {
-                            Text(t.merchant ?: t.type.lowercase().replace('_', ' '), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-                            Text("%.2f %s".format(t.amount, t.currency), style = MaterialTheme.typography.bodyLarge)
-                        }
-                        Text("${t.category ?: uncategorized} · ${t.category_reason.lowercase()} · ${t.occurred_at ?: ""}", style = MaterialTheme.typography.bodySmall)
+        if (rows.isEmpty()) item {
+            Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("📭", style = MaterialTheme.typography.displayMedium)
+                Text(stringResource(R.string.empty), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                Text(status, style = MaterialTheme.typography.bodySmall)
+                if (seen.isNotEmpty()) {
+                    Text(stringResource(R.string.scan_help), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+                        for (id in seen) TextButton(onClick = { onAllow(id) }) { Text("+ $id") }
                     }
-                    HorizontalDivider()
                 }
+            }
+        }
+        rows.groupBy { it.month() }.toSortedMap(reverseOrder()).forEach { (month, txs) ->
+            item(key = "m-$month") { MonthCard(month, txs, uncategorized) }
+            txs.groupBy { it.day() }.toSortedMap(reverseOrder()).forEach { (day, dayTxs) ->
+                item(key = "d-$day") {
+                    val label = when (day) {
+                        today -> stringResource(R.string.today)
+                        today.minusDays(1) -> stringResource(R.string.yesterday)
+                        else -> day.format(dayFmt)
+                    }
+                    Text(label, Modifier.padding(start = 4.dp, top = 16.dp, bottom = 4.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                items(dayTxs, key = { it.id }) { t -> TxRow(t, uncategorized, onPick) }
             }
         }
     }
 }
 
-/** Month totals in SAR only. FX rows are listed, never converted or summed (design §7). */
 @Composable
-private fun MonthHeader(month: String, txs: List<RecentTx>, uncategorized: String) {
-    val sar = txs.filter { it.currency == "SAR" }
-    val spent = sar.filter { it.type in EXPENSE }.sumOf { it.amount }
-    val received = sar.filter { it.type in INCOME }.sumOf { it.amount }
-    val byCat = sar.filter { it.type in EXPENSE }.groupBy { it.category ?: uncategorized }
+private fun TxRow(t: RecentTx, uncategorized: String, onPick: (RecentTx) -> Unit) {
+    val name = t.merchant ?: t.type.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+    val category = t.category ?: uncategorized
+    val emoji = CATEGORY_EMOJI[t.category] ?: name.first().uppercase()
+    val (sign, color) = when (t.type) {
+        in EXPENSE -> "−" to MaterialTheme.colorScheme.error
+        in INCOME -> "+" to MaterialTheme.colorScheme.tertiary
+        else -> "" to MaterialTheme.colorScheme.onSurface
+    }
+    ListItem(
+        modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable(enabled = t.merchant_key != null) { onPick(t) },
+        leadingContent = {
+            Surface(Modifier.size(44.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
+                Box(contentAlignment = Alignment.Center) { Text(emoji, style = MaterialTheme.typography.titleMedium) }
+            }
+        },
+        headlineContent = { Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyLarge) },
+        supportingContent = { Text("$category · ${t.time()}", style = MaterialTheme.typography.bodySmall) },
+        trailingContent = {
+            Column(horizontalAlignment = Alignment.End) {
+                Text(sign + money(t.amount), style = MaterialTheme.typography.titleMedium, color = color)
+                Text(t.currency, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+    )
+}
+
+/**
+ * Month totals in the month's main currency (the one most rows carry). Rows in other currencies
+ * are listed, never converted or summed (design §7); the card says how many were left out.
+ */
+@Composable
+private fun MonthCard(month: String, txs: List<RecentTx>, uncategorized: String) {
+    val main = txs.groupingBy { it.currency }.eachCount().maxByOrNull { it.value }?.key ?: "SAR"
+    val inMain = txs.filter { it.currency == main }
+    val spent = inMain.filter { it.type in EXPENSE }.sumOf { it.amount }
+    val received = inMain.filter { it.type in INCOME }.sumOf { it.amount }
+    val byCat = inMain.filter { it.type in EXPENSE }.groupBy { it.category ?: uncategorized }
         .mapValues { it.value.sumOf { t -> t.amount } }.entries.sortedByDescending { it.value }.take(4)
-    val fx = txs.size - sar.size
-    Column(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 6.dp)) {
-        Text(month, style = MaterialTheme.typography.titleLarge)
-        Row(Modifier.fillMaxWidth()) {
-            Text("${stringResource(R.string.spent)} %.0f".format(spent), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-            Text("${stringResource(R.string.received)} %.0f".format(received), style = MaterialTheme.typography.titleMedium)
+    val fx = txs.size - inMain.size
+    val title = runCatching { YearMonth.parse(month).format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())) }.getOrDefault(month)
+    Card(
+        Modifier.fillMaxWidth().padding(top = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Row(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.spent), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text("−${money(spent)}", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.error)
+                    Text(main, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(stringResource(R.string.received), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text("+${money(received)}", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.tertiary)
+                    Text(main, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+            }
+            if (byCat.isNotEmpty()) Row(Modifier.fillMaxWidth().padding(top = 12.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((cat, sum) in byCat) Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surface) {
+                    Text("${CATEGORY_EMOJI[cat] ?: "•"} $cat ${money(sum)}", Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            // A total that silently omits rows is a wrong total. Say so rather than convert (design §7).
+            if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
         }
-        Text(byCat.joinToString("  ·  ") { "${it.key} %.0f".format(it.value) }, style = MaterialTheme.typography.bodySmall)
-        // A total that silently omits rows is a wrong total. Say so rather than convert (design §7).
-        if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), style = MaterialTheme.typography.bodySmall)
     }
 }
 
