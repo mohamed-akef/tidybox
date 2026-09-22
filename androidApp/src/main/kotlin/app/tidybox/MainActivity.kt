@@ -616,40 +616,28 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
     }
     var keepRaw by remember { mutableStateOf(KeepRaw.get(ctx)) }
     Column(modifier.fillMaxWidth().wrapContentWidth().widthIn(max = 640.dp).imePadding().verticalScroll(rememberScrollState()).padding(bottom = 32.dp)) {
-        Section(stringResource(R.string.privacy_title))
+        Section(stringResource(R.string.senders_title))
+        Text(stringResource(R.string.senders_help), style = MaterialTheme.typography.bodySmall)
         Row(Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.keep_raw), Modifier.weight(1f).padding(top = 12.dp))
-            Switch(checked = keepRaw, onCheckedChange = { on ->
-                keepRaw = on
-                scope.launch { withContext(Dispatchers.IO) { KeepRaw.set(ctx, on, Db.get(ctx)) } }
-            })
+            OutlinedTextField(newSender, { newSender = it }, Modifier.weight(1f), label = { Text(stringResource(R.string.sender_add)) }, singleLine = true)
+            TextButton(enabled = newSender.isNotBlank(), onClick = { allow(newSender.trim()); newSender = "" }) { Text(stringResource(R.string.add)) }
         }
-        Text(stringResource(R.string.keep_raw_help), style = MaterialTheme.typography.bodySmall)
-
-        Section(stringResource(R.string.rulepack_title))
-        Text(stringResource(R.string.rulepack_help), style = MaterialTheme.typography.bodySmall)
-        Text(stringResource(R.string.rulepack_current, pack.name, pack.version), style = MaterialTheme.typography.bodySmall)
-        Row {
-            TextButton(onClick = { loadPack.launch(arrayOf("application/json", "*/*")) }) { Text(stringResource(R.string.rulepack_load)) }
-            TextButton(onClick = {
-                RulePacks.reset(ctx); pack = RulePacks.current(ctx)
-                scope.launch { withContext(Dispatchers.IO) { recategorizeAll(Db.get(ctx), pack); reparseUnread(Db.get(ctx), pack, KeepRaw.get(ctx)) }; onReload() }
-            }) { Text(stringResource(R.string.rulepack_reset)) }
-            Text(packStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+        TextButton(enabled = granted, onClick = { scope.launch { seen = withContext(Dispatchers.IO) { seenSenders(ctx) } } }) { Text(stringResource(R.string.scan_senders)) }
+        seen?.let { ids ->
+            Text(stringResource(if (ids.isEmpty()) R.string.scan_none else R.string.scan_help), style = MaterialTheme.typography.bodySmall)
+            FlowRow(Modifier.fillMaxWidth()) {
+                for (id in ids) TextButton(onClick = { allow(id) }) { Text("+ $id") }
+            }
         }
-
-        Section(stringResource(R.string.backup_title))
-        Text(stringResource(R.string.backup_help), style = MaterialTheme.typography.bodySmall)
-        OutlinedTextField(passphrase, { passphrase = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.passphrase)) }, singleLine = true,
-            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
-        Row {
-            // Export is only meaningful while raw bodies exist — see Export.kt.
-            TextButton(enabled = passphrase.length >= 8 && keepRaw, onClick = { exportTo.launch("tidybox-backup.tdb") }) { Text(stringResource(R.string.export)) }
-            TextButton(enabled = passphrase.length >= 8, onClick = { importFrom.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.import_file)) }
-            Text(backupStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
+        // Collapsed by default: 20+ IDs would push every other setting off the screen.
+        var showSenders by rememberSaveable { mutableStateOf(false) }
+        TextButton(onClick = { showSenders = !showSenders }) {
+            Text(stringResource(if (showSenders) R.string.senders_hide else R.string.senders_show, senders.size))
         }
-        if (!keepRaw) Text(stringResource(R.string.backup_needs_raw), style = MaterialTheme.typography.bodySmall)
-
+        if (showSenders) for (s in senders) Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Text(s, Modifier.weight(1f).padding(top = 12.dp))
+            TextButton(onClick = { Senders.set(ctx, Senders.get(ctx) - s); senders = Senders.get(ctx).sorted() }) { Text(stringResource(R.string.remove)) }
+        }
         Section(stringResource(R.string.import_history))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for ((label, since) in listOf(R.string.range_1m to now - 30 * DAY, R.string.range_3m to now - 90 * DAY, R.string.range_12m to now - 365 * DAY, R.string.range_all to 0L)) {
@@ -659,7 +647,8 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         Text(status, style = MaterialTheme.typography.bodySmall)
         val clipboard = LocalClipboardManager.current
         var copied by remember { mutableStateOf(false) }
-        Text(stringResource(R.string.unreadable_help), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall)
+        Section(stringResource(R.string.improve_title))
+        Text(stringResource(R.string.unreadable_help), style = MaterialTheme.typography.bodySmall)
         Row {
             TextButton(onClick = {
                 scope.launch {
@@ -675,22 +664,39 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             }) { Text(stringResource(R.string.open_issue)) }
         }
 
-        Section(stringResource(R.string.senders_title))
-        Text(stringResource(R.string.senders_help), style = MaterialTheme.typography.bodySmall)
+        Section(stringResource(R.string.privacy_title))
         Row(Modifier.fillMaxWidth()) {
-            OutlinedTextField(newSender, { newSender = it }, Modifier.weight(1f), label = { Text(stringResource(R.string.sender_add)) }, singleLine = true)
-            TextButton(enabled = newSender.isNotBlank(), onClick = { allow(newSender.trim()); newSender = "" }) { Text(stringResource(R.string.add)) }
+            Text(stringResource(R.string.keep_raw), Modifier.weight(1f).padding(top = 12.dp))
+            Switch(checked = keepRaw, onCheckedChange = { on ->
+                keepRaw = on
+                scope.launch { withContext(Dispatchers.IO) { KeepRaw.set(ctx, on, Db.get(ctx)) } }
+            })
         }
-        TextButton(enabled = granted, onClick = { scope.launch { seen = withContext(Dispatchers.IO) { seenSenders(ctx) } } }) { Text(stringResource(R.string.scan_senders)) }
-        seen?.let { ids ->
-            Text(stringResource(if (ids.isEmpty()) R.string.scan_none else R.string.scan_help), style = MaterialTheme.typography.bodySmall)
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                for (id in ids) TextButton(onClick = { allow(id) }) { Text("+ $id") }
-            }
+        Text(stringResource(R.string.keep_raw_help), style = MaterialTheme.typography.bodySmall)
+
+        Section(stringResource(R.string.backup_title))
+        Text(stringResource(R.string.backup_help), style = MaterialTheme.typography.bodySmall)
+        OutlinedTextField(passphrase, { passphrase = it }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.passphrase)) }, singleLine = true,
+            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
+        Row {
+            // Export is only meaningful while raw bodies exist — see Export.kt.
+            TextButton(enabled = passphrase.length >= 8 && keepRaw, onClick = { exportTo.launch("tidybox-backup.tdb") }) { Text(stringResource(R.string.export)) }
+            TextButton(enabled = passphrase.length >= 8, onClick = { importFrom.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.import_file)) }
+            Text(backupStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
-        for (s in senders) Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-            Text(s, Modifier.weight(1f).padding(top = 12.dp))
-            TextButton(onClick = { Senders.set(ctx, Senders.get(ctx) - s); senders = Senders.get(ctx).sorted() }) { Text(stringResource(R.string.remove)) }
+        if (!keepRaw) Text(stringResource(R.string.backup_needs_raw), style = MaterialTheme.typography.bodySmall)
+
+        Section(stringResource(R.string.rulepack_title))
+        Text(stringResource(R.string.rulepack_help), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.rulepack_current, pack.name, pack.version), style = MaterialTheme.typography.bodySmall)
+        Row {
+            TextButton(onClick = { loadPack.launch(arrayOf("application/json", "*/*")) }) { Text(stringResource(R.string.rulepack_load)) }
+            TextButton(onClick = {
+                RulePacks.reset(ctx); pack = RulePacks.current(ctx)
+                scope.launch { withContext(Dispatchers.IO) { recategorizeAll(Db.get(ctx), pack); reparseUnread(Db.get(ctx), pack, KeepRaw.get(ctx)) }; onReload() }
+            }) { Text(stringResource(R.string.rulepack_reset)) }
+            Text(packStatus, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodySmall)
         }
+
     }
 }

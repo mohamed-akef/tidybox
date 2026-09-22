@@ -68,4 +68,7 @@
     <string name="issue_unreadable_title">Unreadable bank messages</string>
     <string name="issue_uncategorized_title">Uncategorized merchants (%1$d)</string>
     <string name="up_to_date">Up to date. No new bank messages.</string>
+    <string name="improve_title">Help improve Tidy Box</string>
+    <string name="senders_show">Show all %1$d senders</string>
+    <string name="senders_hide">Hide senders</string>
 </resources>

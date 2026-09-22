@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Golden corpus: fixtures/corpus.jsonl, 229 messages: 174 Saudi from the spike, 55 Egyptian (CIB English, NBE Arabic) from public parser test suites.
+ * Golden corpus: fixtures/corpus.jsonl, 246 messages: 174 Saudi from the spike, 72 Egyptian (CIB English, NBE Arabic) from public parser test suites.
  * `expect == null` means the message must NOT become a transaction.
  * The bar is the spike's bar: every row, not a percentage.
  */
@@ -15,7 +15,7 @@ class CorpusTest {
     private val rows = corpus
 
     @Test
-    fun corpusIsNotEmpty() = assertTrue(rows.size >= 229, "expected the full corpus, got ${rows.size}")
+    fun corpusIsNotEmpty() = assertTrue(rows.size >= 246, "expected the full corpus, got ${rows.size}")
 
     @Test
     fun everyRejectStaysRejected() {

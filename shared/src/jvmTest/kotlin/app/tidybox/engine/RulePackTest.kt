@@ -86,3 +86,13 @@ class CibDebitDateTest {
         assertEquals("6538", tx.cardLast4)
     }
 }
+
+class CibDeclineTest {
+    @Test
+    fun cibDeclinesAreDeclinedNotSpend() {
+        for (text in listOf(
+            "لقد تم رفض المعاملة من RAM على بطاقتكم الائتمانية المنتهية ب8016 بقيمة 12500.00 EGP نظراً لوجود خطأ في إدخال تاريخ انتهاء البطاقة.",
+            "لقد تم رفض المعاملة من IRAM-NAZEH KHAL على بطاقتكم الائتمانية المنتهية بـ8016 بقيمة 15000.00 EGP لعدم كفاية رصيد البطاقة.",
+        )) assertEquals(EngineResult.Rejected(Rejection.DECLINED), extract(text))
+    }
+}

@@ -68,4 +68,7 @@
     <string name="issue_unreadable_title">رسائل بنكية غير مقروءة</string>
     <string name="issue_uncategorized_title">متاجر غير مصنّفة (%1$d)</string>
     <string name="up_to_date">لا جديد. لا توجد رسائل بنكية جديدة.</string>
+    <string name="improve_title">ساعد في تحسين Tidy Box</string>
+    <string name="senders_show">عرض كل المرسلين (%1$d)</string>
+    <string name="senders_hide">إخفاء المرسلين</string>
 </resources>
