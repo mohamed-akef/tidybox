@@ -61,4 +61,8 @@
     <string name="remove_transaction">إزالة من Tidy Box</string>
     <string name="older_month">الشهر الأقدم</string>
     <string name="newer_month">الشهر الأحدث</string>
+    <string name="showing_only">عرض %1$s فقط</string>
+    <string name="clear_filter">عرض الكل</string>
+    <string name="share_uncategorized">مشاركة أسماء المتاجر</string>
+    <string name="share_uncategorized_intro">متاجر لم يستطع Tidy Box تصنيفها (الأسماء والعدد فقط). الصقها في بلاغ على github.com/mohamed-akef/tidybox/issues لتحسين القاموس المشترك.</string>
 </resources>

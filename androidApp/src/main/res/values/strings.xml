@@ -61,4 +61,8 @@
     <string name="remove_transaction">Remove from Tidy Box</string>
     <string name="older_month">Older month</string>
     <string name="newer_month">Newer month</string>
+    <string name="showing_only">Showing only %1$s</string>
+    <string name="clear_filter">Show all</string>
+    <string name="share_uncategorized">Share merchant names</string>
+    <string name="share_uncategorized_intro">Merchants Tidy Box could not categorize (names and counts only). Paste into a GitHub issue at github.com/mohamed-akef/tidybox/issues to improve the shared dictionary.</string>
 </resources>

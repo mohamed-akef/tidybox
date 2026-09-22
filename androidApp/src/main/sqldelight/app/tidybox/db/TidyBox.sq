@@ -60,6 +60,11 @@ WHERE tx.hidden = 0 ORDER BY message.received_at DESC LIMIT 500;
 txDetail:
 SELECT tx.*, message.sender, message.body, message.received_at FROM tx JOIN message ON message.id = tx.message_id WHERE tx.id = ?;
 
+-- Distinct merchant names the dictionary does not know, most frequent first. Names only.
+uncategorizedMerchants:
+SELECT merchant, COUNT(*) AS n FROM tx WHERE category IS NULL AND merchant IS NOT NULL AND hidden = 0
+GROUP BY merchant_key ORDER BY n DESC LIMIT 200;
+
 setType:
 UPDATE tx SET type = ? WHERE id = ?;
 
