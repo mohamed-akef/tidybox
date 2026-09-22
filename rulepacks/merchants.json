@@ -308,6 +308,11 @@
         "scope": "whole"
       },
       {
+        "re": "تم تقسيط|كشف حساب|تحديث أنظمة|قناة واتساب|بحد أدنى",
+        "reject": "NO_TEMPLATE",
+        "scope": "whole"
+      },
+      {
         "re": "تم استلام الطلب لرد",
         "reject": "NO_TEMPLATE",
         "scope": "whole"
@@ -348,6 +353,10 @@
       {
         "re": "تم تنفيذ تحويل",
         "type": "TRANSFER_OUT"
+      },
+      {
+        "re": "تم سداد مبلغ .{0,40}بطاقتكم الائتمانية",
+        "type": "TRANSFER_SELF"
       },
       {
         "re": "حوالة بين حساباتك",
@@ -424,6 +433,12 @@
         "flags": "i"
       },
       {
+        "re": "\\byou received\\b|received .{0,60}\\bto your (?:card|account|wallet)",
+        "type": "TRANSFER_IN",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
         "re": "transfer .{0,40}deducted|(?:sent|transferred) .{0,40}\\bto\\b|outgoing transfer",
         "type": "TRANSFER_OUT",
         "scope": "whole",
@@ -432,6 +447,12 @@
       {
         "re": "was charged|charged for|debited|deducted",
         "type": "PURCHASE",
+        "scope": "whole",
+        "flags": "i"
+      },
+      {
+        "re": "update your KYC|visit the branch",
+        "reject": "NO_TEMPLATE",
         "scope": "whole",
         "flags": "i"
       },
@@ -564,7 +585,7 @@
         "re": "(?:بطاقة|البطاقة|عبر|ببطاقة مدي|بطاقة مدي|لبطاقة مدي)[^\\d\\n]*?(\\d{4})"
       },
       {
-        "re": "(?:card|account)(?: ending)?(?: with| in)?\\s*#?\\s*(\\d{4})",
+        "re": "(?:card|account)(?: ending)?(?: with| in)?\\s*#?\\s*\\**\\s*(\\d{4})",
         "flags": "i"
       },
       {
@@ -602,6 +623,10 @@
       {
         "re": "(\\d{1,2})-(\\d{1,2})-(\\d{4})\\s+(\\d{1,2}):(\\d{2})",
         "order": "DMYhm"
+      },
+      {
+        "re": "(\\d{1,2})\\.(\\d{1,2})\\.(\\d{2})\\s+(?:at\\s+)?(\\d{1,2}):(\\d{2})",
+        "order": "DMyhm"
       }
     ]
   }

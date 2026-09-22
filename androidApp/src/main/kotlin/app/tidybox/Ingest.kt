@@ -24,7 +24,7 @@ val DEFAULT_SENDERS = setOf(
     "BSF", "AlBilad", "Bank AlBilad", "AlJazira", "BankAlJazira", "stc pay", "stcpay", "STC Bank", "D360",
     // Egypt — observed on a device. Seeds are only ever IDs seen on a real phone; the
     // "Scan phone" picker in Settings covers every other bank and country.
-    "CIB", "KFH Egypt", "VF-Cash",
+    "CIB", "KFH Egypt", "VF-Cash", "BPay",
 )
 
 object Senders {
