@@ -10,7 +10,7 @@
     <string name="range_1m">Last month</string>
     <string name="range_3m">Last 3 months</string>
     <string name="range_12m">Last year</string>
-    <string name="range_all">Everything</string>
+    <string name="range_all">All</string>
     <string name="settings">Settings</string>
     <string name="inbox">Inbox</string>
     <string name="senders_title">Bank senders</string>
@@ -46,7 +46,6 @@
     <string name="scan_none">No new sender IDs found.</string>
     <string name="unreadable_help">Bank messages the app could not read stay unread until a template exists for that wording. Copy a masked sample (every digit becomes 0; merchant names remain) and paste it into a GitHub issue, or send it privately.</string>
     <string name="unreadable_copy">Copy 20 unreadable messages</string>
-    <string name="unreadable_copied">Copied. Paste into github.com/mohamed-akef/tidybox/issues</string>
     <string name="reparsed">Re-read stored messages: %1$d new transactions</string>
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
@@ -63,6 +62,9 @@
     <string name="newer_month">Newer month</string>
     <string name="showing_only">Showing only %1$s</string>
     <string name="clear_filter">Show all</string>
-    <string name="share_uncategorized">Share merchant names</string>
-    <string name="share_uncategorized_intro">Merchants Tidy Box could not categorize (names and counts only). Paste into a GitHub issue at github.com/mohamed-akef/tidybox/issues to improve the shared dictionary.</string>
+    <string name="share_uncategorized_intro">Merchants Tidy Box could not categorize, names and counts only. Adding them to the shared dictionary helps everyone.</string>
+    <string name="copied">Copied</string>
+    <string name="open_issue">Open GitHub issue</string>
+    <string name="issue_unreadable_title">Unreadable bank messages</string>
+    <string name="issue_uncategorized_title">Uncategorized merchants (%1$d)</string>
 </resources>

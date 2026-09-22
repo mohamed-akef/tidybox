@@ -67,6 +67,7 @@ object RulePacks {
  */
 fun reparseUnread(db: TidyBoxDb, pack: RulePack, keepRaw: Boolean): Int {
     db.tidyBoxQueries.clearImplausibleDates()
+    db.tidyBoxQueries.hideDuplicateTx()
     db.tidyBoxQueries.reopenUnread()
     return parsePending(db, pack, keepRaw)
 }
@@ -137,7 +138,10 @@ private fun sha256(vararg parts: String): String =
  */
 fun storeMessage(db: TidyBoxDb, allowed: Set<String>, sender: String?, body: String, receivedAt: Long): Boolean {
     if (!Senders.allows(allowed, sender)) return false
-    db.tidyBoxQueries.insertMessage(sha256(sender!!, body, receivedAt.toString()), sender, body, receivedAt)
+    // ponytail: with "Keep raw messages" off, stored bodies are blank and this guard cannot see a
+    // repeat; the exact hash still catches identical timestamps.
+    if (db.tidyBoxQueries.nearDuplicate(sender!!, body, receivedAt - 600_000, receivedAt + 600_000).executeAsOne() > 0) return false
+    db.tidyBoxQueries.insertMessage(sha256(sender, body, receivedAt.toString()), sender, body, receivedAt)
     return true
 }
 
