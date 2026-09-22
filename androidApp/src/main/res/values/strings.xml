@@ -22,7 +22,7 @@
     <string name="spent">Spent</string>
     <string name="received">Received</string>
     <string name="pick_category">Category for %1$s</string>
-    <string name="empty">No transactions yet. Settings → Import history, or wait for the next bank SMS.</string>
+    <string name="empty">No transactions yet. Bank SMS are read automatically; wait for the next one, or re-import from Settings.</string>
     <string name="backup_title">Backup</string>
     <string name="backup_help">An encrypted file of your raw messages and corrections. Keep it anywhere; only this passphrase opens it.</string>
     <string name="passphrase">Passphrase</string>

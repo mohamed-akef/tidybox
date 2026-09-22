@@ -59,6 +59,14 @@ object RulePacks {
 }
 
 /** O4. Default keep: enables re-parse after a rule-pack update, "why this category", and backup. */
+/** Whether the one-time automatic history import has run. */
+object Imported {
+    private const val PREFS = "tidybox-privacy"
+    private const val KEY = "auto_imported"
+    fun get(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY, false)
+    fun set(context: Context) { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY, true).commit() }
+}
+
 object KeepRaw {
     private const val PREFS = "tidybox-privacy"
     private const val KEY = "keep_raw"
