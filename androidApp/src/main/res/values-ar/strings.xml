@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">رصيد</string>
+    <string name="privacy_line">رصيد يقرأ رسائل البنك على هذا الجهاز فقط. لا شيء يغادر جهازك.</string>
+    <string name="allow_sms">السماح بقراءة الرسائل</string>
+    <string name="android15_note">على أندرويد 15 وما بعده، التطبيق المثبّت من خارج Google Play يحتاج إذنًا أولًا: افتح معلومات التطبيق ← ⋮ ← السماح بالإعدادات المقيّدة، ثم عد إلى هنا.</string>
+    <string name="import_history">استيراد الرسائل السابقة</string>
+    <string name="importing">جارٍ الاستيراد… %1$d</string>
+    <string name="imported">تم استيراد %1$d رسالة بنكية</string>
+    <string name="range_1m">آخر شهر</string>
+    <string name="range_3m">آخر 3 أشهر</string>
+    <string name="range_12m">آخر سنة</string>
+    <string name="range_all">كل الرسائل</string>
+    <string name="settings">الإعدادات</string>
+    <string name="inbox">الوارد</string>
+    <string name="senders_title">مرسلو البنوك</string>
+    <string name="senders_help">تُقرأ الرسائل من هذه المعرّفات فقط. كل ما عداها يُتجاهل قبل تخزينه.</string>
+    <string name="sender_add">إضافة معرّف مرسل</string>
+    <string name="add">إضافة</string>
+    <string name="remove">إزالة</string>
+    <string name="uncategorized">غير مصنّف</string>
+    <string name="spent">المصروف</string>
+    <string name="received">الوارد</string>
+    <string name="pick_category">تصنيف %1$s</string>
+    <string name="empty">لا عمليات بعد. استورد الرسائل السابقة أو انتظر رسالة البنك التالية.</string>
+    <string name="fx_excluded">%1$d عملية بعملة أخرى معروضة ولم تُحتسب في هذه المجاميع.</string>
+</resources>

@@ -7,7 +7,7 @@ import android.provider.Telephony
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import co.raseed.Db
-import co.raseed.isAllowedSender
+import co.raseed.Senders
 import co.raseed.storeMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,14 +22,15 @@ class SmsReceiver : BroadcastReceiver() {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
         val parts = Telephony.Sms.Intents.getMessagesFromIntent(intent) ?: return
         val sender = parts.firstOrNull()?.displayOriginatingAddress
-        if (!isAllowedSender(sender)) return // dropped: not stored, not parsed, not hashed
+        val allowed = Senders.get(context)
+        if (!Senders.allows(allowed, sender)) return // dropped: not stored, not parsed, not hashed
         val body = parts.joinToString("") { it.messageBody ?: "" }
         val receivedAt = parts.first().timestampMillis
 
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                if (storeMessage(Db.get(context), sender, body, receivedAt)) {
+                if (storeMessage(Db.get(context), allowed, sender, body, receivedAt)) {
                     WorkManager.getInstance(context).enqueue(OneTimeWorkRequestBuilder<ParseWorker>().build())
                 }
             } finally {

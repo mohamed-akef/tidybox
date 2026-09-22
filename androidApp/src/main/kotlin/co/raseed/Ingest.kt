@@ -12,16 +12,26 @@ import java.security.MessageDigest
 
 /**
  * Sender allowlist — the privacy enforcement point (design §2.2). Anything not here is dropped
- * in the receiver before it is stored, parsed or hashed.
- * ponytail: constant list of Saudi bank sender IDs; user-editable allowlist is a settings PR.
+ * in the receiver before it is stored, parsed or hashed. Seeded with Saudi bank IDs; the user
+ * edits it in Settings and the edited set is what the receiver consults.
  */
-val ALLOWED_SENDERS = setOf(
+val DEFAULT_SENDERS = setOf(
     "AlRajhiBank", "Alinma", "AlinmaBank", "SNB", "AlAhli", "SABB", "Riyad Bank", "RiyadBank", "ANB",
     "BSF", "AlBilad", "Bank AlBilad", "AlJazira", "BankAlJazira", "stc pay", "stcpay", "STC Bank", "D360",
 )
 
-fun isAllowedSender(sender: String?): Boolean =
-    sender != null && ALLOWED_SENDERS.any { it.equals(sender, ignoreCase = true) }
+object Senders {
+    private const val PREFS = "raseed-senders"
+    private const val KEY = "allow"
+    fun get(context: Context): Set<String> =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getStringSet(KEY, null) ?: DEFAULT_SENDERS
+    fun set(context: Context, senders: Set<String>) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY, senders).commit()
+    }
+    /** The one matching rule. Everything that can persist a message routes through here. */
+    fun allows(allowed: Set<String>, sender: String?): Boolean =
+        sender != null && allowed.any { it.equals(sender.trim(), ignoreCase = true) }
+}
 
 object Db {
     @Volatile private var instance: RaseedDb? = null
@@ -40,9 +50,18 @@ private fun sha256(vararg parts: String): String =
     MessageDigest.getInstance("SHA-256").digest(parts.joinToString("\u0000").toByteArray())
         .joinToString("") { "%02x".format(it) }
 
-/** Store a raw message. Idempotent on (sender, body, received_at). Returns false if dropped. */
-fun storeMessage(db: RaseedDb, sender: String?, body: String, receivedAt: Long): Boolean {
-    if (!isAllowedSender(sender)) return false
+/**
+ * Store a raw message. Idempotent on (sender, body, received_at).
+ *
+ * The allowlist check lives HERE, not in the callers: this is the only function that can put a
+ * bank message on disk, so it is the only place the design §2.2 guarantee can actually be enforced.
+ * Callers pass the allowed set rather than a Context so the check stays a pure function of its
+ * arguments.
+ *
+ * @return false if the sender is not allowlisted — nothing was stored, parsed or hashed.
+ */
+fun storeMessage(db: RaseedDb, allowed: Set<String>, sender: String?, body: String, receivedAt: Long): Boolean {
+    if (!Senders.allows(allowed, sender)) return false
     db.raseedQueries.insertMessage(sha256(sender!!, body, receivedAt.toString()), sender, body, receivedAt)
     return true
 }
