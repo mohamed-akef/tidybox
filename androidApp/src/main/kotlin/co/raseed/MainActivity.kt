@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import co.raseed.db.RecentTx
-import co.raseed.engine.KNOWN_CATEGORIES
+import co.raseed.engine.knownCategories
 import co.raseed.sms.backfill
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -75,7 +76,7 @@ private fun App() {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted = it.values.all { v -> v } }
 
     fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).raseedQueries.recentTx().executeAsList() } } }
-    remember { reload(); true }
+    LaunchedEffect(Unit) { reload() }
     fun import(sinceMillis: Long) {
         scope.launch {
             val n = withContext(Dispatchers.IO) { backfill(ctx, sinceMillis) { c -> scope.launch { status = ctx.getString(R.string.importing, c) } } }
@@ -89,8 +90,9 @@ private fun App() {
             onDismissRequest = { picking = null },
             title = { Text(stringResource(R.string.pick_category, t.merchant ?: "")) },
             text = {
+                val cats = remember { knownCategories(RulePacks.current(ctx)) }
                 LazyColumn {
-                    items(KNOWN_CATEGORIES) { cat ->
+                    items(cats) { cat ->
                         TextButton(onClick = {
                             picking = null
                             scope.launch { withContext(Dispatchers.IO) { correct(Db.get(ctx), t.merchant_key!!, cat) }; reload() }
@@ -149,6 +151,7 @@ private fun MonthHeader(month: String, txs: List<RecentTx>, uncategorized: Strin
     val received = sar.filter { it.type in INCOME }.sumOf { it.amount }
     val byCat = sar.filter { it.type in EXPENSE }.groupBy { it.category ?: uncategorized }
         .mapValues { it.value.sumOf { t -> t.amount } }.entries.sortedByDescending { it.value }.take(4)
+    val fx = txs.size - sar.size
     Column(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 6.dp)) {
         Text(month, style = MaterialTheme.typography.titleLarge)
         Row(Modifier.fillMaxWidth()) {
@@ -156,6 +159,8 @@ private fun MonthHeader(month: String, txs: List<RecentTx>, uncategorized: Strin
             Text("${stringResource(R.string.received)} %.0f".format(received), style = MaterialTheme.typography.titleMedium)
         }
         Text(byCat.joinToString("  ·  ") { "${it.key} %.0f".format(it.value) }, style = MaterialTheme.typography.bodySmall)
+        // A total that silently omits rows is a wrong total. Say so rather than convert (design §7).
+        if (fx > 0) Text(stringResource(R.string.fx_excluded, fx), style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -172,7 +177,9 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         uri ?: return@rememberLauncherForActivityResult
         scope.launch {
             withContext(Dispatchers.IO) {
-                ctx.contentResolver.openOutputStream(uri)!!.use { it.write(exportEncrypted(Db.get(ctx), passphrase.toCharArray())) }
+                val pw = passphrase.toCharArray()
+                try { ctx.contentResolver.openOutputStream(uri)!!.use { it.write(exportEncrypted(Db.get(ctx), pw)) } }
+                finally { pw.fill('\u0000') }
             }
             backupStatus = ctx.getString(R.string.exported)
         }
@@ -183,7 +190,8 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
             backupStatus = runCatching {
                 withContext(Dispatchers.IO) {
                     val blob = ctx.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
-                    importEncrypted(Db.get(ctx), blob, passphrase.toCharArray())
+                    val pw = passphrase.toCharArray()
+                    try { importEncrypted(Db.get(ctx), Senders.get(ctx), RulePacks.current(ctx), blob, pw) } finally { pw.fill('\u0000') }
                 }
             }.map { (m, r) -> ctx.getString(R.string.imported_backup, m, r) }.getOrElse { ctx.getString(R.string.import_failed) }
             onReload()
@@ -238,7 +246,6 @@ private fun Settings(modifier: Modifier, granted: Boolean, status: String, onImp
         }
 
         Text(stringResource(R.string.import_history), Modifier.padding(top = 24.dp), style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.import_history), style = MaterialTheme.typography.titleMedium)
         Row {
             for ((label, since) in listOf(R.string.range_1m to now - 30 * DAY, R.string.range_3m to now - 90 * DAY, R.string.range_12m to now - 365 * DAY, R.string.range_all to 0L)) {
                 TextButton(enabled = granted, onClick = { onImport(since) }) { Text(stringResource(label)) }

@@ -26,8 +26,7 @@ fun backfill(context: Context, sinceMillis: Long, onProgress: (Int) -> Unit = {}
     )?.use { c ->
         while (c.moveToNext()) {
             val sender = c.getString(0) ?: continue
-            if (allowed.none { it.equals(sender.trim(), ignoreCase = true) }) continue
-            storeMessage(db, sender, c.getString(1) ?: continue, c.getLong(2))
+            if (!storeMessage(db, allowed, sender, c.getString(1) ?: continue, c.getLong(2))) continue
             stored++
             if (stored % 25 == 0) onProgress(stored)
         }

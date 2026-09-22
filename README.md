@@ -10,9 +10,13 @@ Your financial history never leaves your phone, because there is nowhere for it 
 
 ---
 
-## Status: design phase — nothing is implemented yet
+## Status: Android v0.1 built — not yet run on a device
 
-This repository holds research, a design, and one measurement. No app code exists yet.
+The parsing engine (`shared/`) with the 174-message corpus as its test suite, and an Android
+app that captures allowlisted bank SMS, categorizes them, groups them by month, takes
+corrections, and exports an encrypted backup. English and Arabic. What is *not* built is
+listed per-section in [the design](docs/specs/2026-09-16-design.md) — the short list is
+extraction templates as data, rule-pack download, and iOS.
 The design's central assumption — rules and user corrections, no model — has been
 [measured on 174 real messages](docs/spike/RESULT.md): extraction 104/104, categorization
 72% correct / **0% wrong** / 28% abstain on held-out merchants, and an embedding model
@@ -63,14 +67,18 @@ that rather than asserted it: [the spike](docs/spike/RESULT.md). The full argume
 
 Details and sources: [docs/research/01](docs/research/01-platform-constraints.md).
 
-## Planned layout
+## Layout
 
 ```
-shared/        Kotlin Multiplatform — parse + categorize. No I/O.
-androidApp/    SMS receiver, SQLCipher store, Compose UI
+shared/        Kotlin Multiplatform — normalize, extract, categorize. No I/O.
+androidApp/    SMS receiver, WorkManager parse, SQLDelight store, Compose inbox
 iosApp/        later — same shared/, different ingestion
-rulepacks/     bank templates, merchant dictionary, category vectors, signing
-fixtures/      redacted real SMS — the test corpus
+rulepacks/     later — bank templates and merchant dictionary as signed JSON (Kotlin constants today)
+fixtures/      corpus.jsonl — 174 labeled real messages, asserted row-by-row in CI
+spike/         the throwaway measurement (docs/spike/RESULT.md)
+
+Build: JDK 17, `./gradlew :shared:jvmTest` for the engine, `./gradlew :androidApp:assembleDebug`
+for the APK (needs an Android SDK; `local.properties` → `sdk.dir`).
 ```
 
 ## Documents

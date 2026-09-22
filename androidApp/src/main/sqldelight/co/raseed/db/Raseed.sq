@@ -1,5 +1,8 @@
 -- Design §3. Raw messages are kept so a rule-pack update can re-parse history (O4).
 -- Encrypted at rest: SQLCipher, passphrase wrapped by an AndroidKeyStore AES key (DbKey.kt).
+-- ponytail: schema version 1, no .sqm migrations — every later change edits these CREATE TABLEs
+--   in place, which is only safe while no build has reached a device. Freeze this and start
+--   writing .sqm files at the first tagged release.
 
 CREATE TABLE message (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

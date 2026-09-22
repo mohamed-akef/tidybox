@@ -40,4 +40,5 @@
     <string name="privacy_title">Privacy</string>
     <string name="keep_raw">Keep raw messages</string>
     <string name="keep_raw_help">On: a newer rule pack can re-read your history, and the backup file contains your messages. Off: message text is erased right after it is read, and history cannot be re-derived. Turning it off erases stored text now.</string>
+    <string name="fx_excluded">%1$d row(s) in another currency are listed but not included in these totals.</string>
 </resources>

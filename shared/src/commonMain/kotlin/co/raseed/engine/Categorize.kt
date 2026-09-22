@@ -12,8 +12,14 @@ private val TYPE_CATEGORY = mapOf(
     TxType.ATM_OUT to "Cash", TxType.GOV to "Government", TxType.INVESTMENT to "Finance",
 )
 
-/** Every category the engine can emit, plus "Other" for the user's catch-all. What the correction picker shows. */
-val KNOWN_CATEGORIES: List<String> = (RulePack.bundled.categories + TYPE_CATEGORY.values + "Other").distinct().sorted()
+/**
+ * Every category the engine can emit with [pack] loaded, plus "Other" for the user's catch-all.
+ * What the correction picker shows — so it must be derived from the ACTIVE pack, not the bundled
+ * one: a loaded pack that declares a new category can categorize rows into it, and the user has to
+ * be able to pick it too.
+ */
+fun knownCategories(pack: RulePack = RulePack.bundled): List<String> =
+    (pack.categories + TYPE_CATEGORY.values + "Other").distinct().sorted()
 
 private fun containsTokenSequence(tokens: List<String>, needle: List<String>): Boolean {
     if (needle.isEmpty() || needle.size > tokens.size) return false

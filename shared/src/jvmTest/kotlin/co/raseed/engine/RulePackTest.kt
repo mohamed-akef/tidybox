@@ -18,7 +18,7 @@ class RulePackTest {
         val p = RulePack.bundled
         assertTrue(p.merchants.values.sumOf { it.size } > 100, "seed dictionary shrank")
         assertTrue("mtaam" in p.latinTokens && "محطة" in p.arabic.map { it.first }, "transliterated/arabic keywords missing")
-        assertTrue(KNOWN_CATEGORIES.containsAll(listOf("Food", "Transfer", "Other")))
+        assertTrue(knownCategories().containsAll(listOf("Food", "Transfer", "Other")))
     }
 
     @Test
@@ -27,6 +27,20 @@ class RulePackTest {
         val tx = Transaction(TxType.PURCHASE, 9.0, "SAR", "THATI LIMITED", null, null, null)
         assertEquals(Categorized(null, CategoryReason.UNKNOWN), categorize(tx))
         assertEquals(Categorized("Food", CategoryReason.FUZZY), categorize(tx, pack = custom))
+    }
+
+    @Test
+    fun aLoadedPacksNewCategoryIsOfferedToTheUser() {
+        // Regression: knownCategories read the bundled pack, so a loaded pack could categorize a
+        // row into a category the correction dialog had no way to offer.
+        val custom = RulePack.parse("""{"version":2,"name":"t","categories":["Food","Charity"],"merchants":{"Charity":["ehsan"]},"keywords":{}}""")
+        assertTrue("Charity" !in knownCategories())
+        assertTrue("Charity" in knownCategories(custom))
+    }
+
+    @Test
+    fun anUndeclaredKeywordCategoryIsRejected() {
+        assertFailsWith<IllegalArgumentException> { RulePack.parse("""{"version":1,"name":"t","categories":["Food"],"merchants":{},"keywords":{"arabic":{"Charity":["جمعية"]}}}""") }
     }
 
     @Test
