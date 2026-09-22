@@ -15,3 +15,23 @@ jobs:
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew :shared:jvmTest --no-daemon
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew :androidApp:assembleDebug --no-daemon
+      # The privacy claim, checked on every build: the APK must not request INTERNET.
+      - run: |
+          AAPT=$(ls -d $ANDROID_HOME/build-tools/*/aapt2 | tail -1)
+          $AAPT dump permissions androidApp/build/outputs/apk/debug/androidApp-debug.apk | tee perms.txt
+          ! grep -q "android.permission.INTERNET" perms.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: androidApp-debug.apk
+          path: androidApp/build/outputs/apk/debug/androidApp-debug.apk

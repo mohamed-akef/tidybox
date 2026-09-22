@@ -14,4 +14,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "raseed"
-include(":shared")
+include(":shared", ":androidApp")

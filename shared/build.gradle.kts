@@ -1,6 +1,7 @@
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("com.android.kotlin.multiplatform.library")
 }
 
 // Pure engine. No I/O, no network, no DB, no clock — see docs/specs/2026-09-16-design.md §1.
@@ -8,7 +9,12 @@ plugins {
 // starts here: nothing below can open a socket.
 kotlin {
     jvm()
-    // androidTarget() and iosArm64() are added when their apps exist; commonMain does not change.
+    androidLibrary {
+        namespace = "co.raseed.engine"
+        compileSdk = 37
+        minSdk = 26
+    }
+    // iosArm64() is added when the iOS app exists; commonMain does not change.
 
     sourceSets {
         commonMain.dependencies {
