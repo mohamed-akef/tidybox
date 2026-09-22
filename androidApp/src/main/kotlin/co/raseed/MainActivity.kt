@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +56,7 @@ private fun Inbox() {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted = it.values.all { v -> v } }
 
     fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).raseedQueries.recentTx().executeAsList() } } }
-    remember { reload(); true }
+    LaunchedEffect(Unit) { reload() }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Raseed") }) }) { pad ->
         Column(Modifier.padding(pad).padding(12.dp)) {
