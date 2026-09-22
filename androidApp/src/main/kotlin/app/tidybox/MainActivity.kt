@@ -64,6 +64,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -188,13 +191,18 @@ private fun App() {
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted = it.values.all { v -> v } }
 
     var seen by remember { mutableStateOf(emptyList<String>()) }
+    var refreshing by remember { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
 
     fun reload() { scope.launch { rows = withContext(Dispatchers.IO) { Db.get(ctx).tidyBoxQueries.recentTx().executeAsList() } } }
     fun import(sinceMillis: Long) {
         scope.launch {
+            refreshing = true
             val (n, found) = withContext(Dispatchers.IO) { backfill(ctx, sinceMillis) { c -> scope.launch { status = ctx.getString(R.string.importing, c) } } }
             status = ctx.getString(R.string.imported, n, found)
+            refreshing = false
             reload()
+            if (rows.isNotEmpty() || n > 0) snackbar.showSnackbar(status)
             // Nothing landed: show the sender IDs on the phone so one tap fixes the allowlist.
             seen = if (found == 0) withContext(Dispatchers.IO) { seenSenders(ctx) } else emptyList()
         }
@@ -217,7 +225,7 @@ private fun App() {
     }
 
     BackHandler(enabled = settings) { settings = false }
-    Scaffold(topBar = {
+    Scaffold(snackbarHost = { SnackbarHost(snackbar) }, topBar = {
         TopAppBar(
             title = { Text(stringResource(if (settings) R.string.settings else R.string.app_name), style = MaterialTheme.typography.titleLarge) },
             navigationIcon = { if (settings) IconButton(onClick = { settings = false }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.inbox)) } },
@@ -226,7 +234,10 @@ private fun App() {
         )
     }) { pad ->
         if (settings) Settings(Modifier.padding(pad).padding(horizontal = 20.dp), granted, status, ::import, onReload = ::reload)
-        else Inbox(Modifier.padding(pad).padding(horizontal = 16.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
+        // Pull down = read the whole SMS inbox again and re-run the engine on anything unread.
+        else PullToRefreshBox(isRefreshing = refreshing, onRefresh = { if (granted && !refreshing) import(0) }, modifier = Modifier.padding(pad)) {
+            Inbox(Modifier.padding(horizontal = 16.dp), granted, rows, status, seen, onAsk = { ask.launch(PERMS) }, onPick = { picking = it.id }, onAllow = ::allow)
+        }
     }
 }
 
