@@ -10,7 +10,7 @@
     <string name="range_1m">آخر شهر</string>
     <string name="range_3m">آخر 3 أشهر</string>
     <string name="range_12m">آخر سنة</string>
-    <string name="range_all">كل الرسائل</string>
+    <string name="range_all">الكل</string>
     <string name="settings">الإعدادات</string>
     <string name="inbox">الوارد</string>
     <string name="senders_title">مرسلو البنوك</string>
@@ -46,7 +46,6 @@
     <string name="scan_none">لم يُعثر على معرّفات جديدة.</string>
     <string name="unreadable_help">رسائل البنك التي لم يفهمها التطبيق تبقى غير مقروءة حتى تتوفر قاعدة لصياغتها. انسخ عيّنة مموّهة (كل رقم يصبح 0؛ أسماء المتاجر تبقى) والصقها في بلاغ على GitHub أو أرسلها بشكل خاص.</string>
     <string name="unreadable_copy">نسخ 20 رسالة غير مقروءة</string>
-    <string name="unreadable_copied">تم النسخ. الصقها في github.com/mohamed-akef/tidybox/issues</string>
     <string name="reparsed">أُعيدت قراءة الرسائل المخزّنة: %1$d عملية جديدة</string>
     <string name="today">اليوم</string>
     <string name="yesterday">أمس</string>
@@ -63,6 +62,9 @@
     <string name="newer_month">الشهر الأحدث</string>
     <string name="showing_only">عرض %1$s فقط</string>
     <string name="clear_filter">عرض الكل</string>
-    <string name="share_uncategorized">مشاركة أسماء المتاجر</string>
-    <string name="share_uncategorized_intro">متاجر لم يستطع Tidy Box تصنيفها (الأسماء والعدد فقط). الصقها في بلاغ على github.com/mohamed-akef/tidybox/issues لتحسين القاموس المشترك.</string>
+    <string name="share_uncategorized_intro">متاجر لم يستطع Tidy Box تصنيفها، الأسماء والعدد فقط. إضافتها إلى القاموس المشترك تفيد الجميع.</string>
+    <string name="copied">تم النسخ</string>
+    <string name="open_issue">فتح بلاغ على GitHub</string>
+    <string name="issue_unreadable_title">رسائل بنكية غير مقروءة</string>
+    <string name="issue_uncategorized_title">متاجر غير مصنّفة (%1$d)</string>
 </resources>

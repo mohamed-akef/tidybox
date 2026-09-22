@@ -26,6 +26,32 @@ class ReparseTest {
     }
 }
 
+class DuplicateTest {
+    @Test
+    fun `the same SMS seen live and by import is stored once`() {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        TidyBoxDb.Schema.create(driver)
+        val db = TidyBoxDb(driver)
+        val allowed = setOf("CIB")
+        assertEquals(true, storeMessage(db, allowed, "CIB", "Your credit card was charged for EGP 5.00 at X on 24/11/25  at 18:27.", 1_000_000L)) // live: network time
+        assertEquals(false, storeMessage(db, allowed, "CIB", "Your credit card was charged for EGP 5.00 at X on 24/11/25  at 18:27.", 1_004_200L)) // import: phone time, 4 s later
+        assertEquals(true, storeMessage(db, allowed, "CIB", "Your credit card was charged for EGP 5.00 at X on 24/11/25  at 18:27.", 90_000_000L)) // a real repeat a day later
+        assertEquals(2, db.tidyBoxQueries.allMessages().executeAsList().size)
+    }
+
+    @Test
+    fun `duplicates stored before the guard are hidden, not deleted`() {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        TidyBoxDb.Schema.create(driver)
+        val q = TidyBoxDb(driver).tidyBoxQueries
+        q.insertMessage("a", "CIB", "same", 1_000_000L); q.insertMessage("b", "CIB", "same", 1_003_000L)
+        q.insertTx(1, "PURCHASE", 5.0, "EGP", null, null, null, null, null, "UNKNOWN")
+        q.insertTx(2, "PURCHASE", 5.0, "EGP", null, null, null, null, null, "UNKNOWN")
+        q.hideDuplicateTx()
+        assertEquals(listOf(1L), q.recentTx().executeAsList().map { it.id })
+    }
+}
+
 class SchemaV2Test {
     @Test
     fun `a v1 database migrates and hidden rows leave the inbox`() {

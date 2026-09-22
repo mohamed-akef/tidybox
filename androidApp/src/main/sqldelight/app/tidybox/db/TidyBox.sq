@@ -39,6 +39,20 @@ INSERT OR IGNORE INTO message(hash, sender, body, received_at) VALUES (?, ?, ?, 
 allMessages:
 SELECT sender, body, received_at FROM message ORDER BY received_at;
 
+-- Same text from the same sender within ten minutes is the same SMS: the live receiver stores
+-- the network timestamp, the importer the phone's receive time, and they differ by seconds.
+nearDuplicate:
+SELECT COUNT(*) FROM message WHERE sender = ? AND body = ? AND received_at BETWEEN ? AND ?;
+
+-- Repairs rows stored before nearDuplicate existed. Only with bodies kept: blank bodies would
+-- all look alike.
+hideDuplicateTx:
+UPDATE tx SET hidden = 1 WHERE message_id IN (
+    SELECT later.id FROM message later JOIN message earlier
+        ON earlier.sender = later.sender AND earlier.body = later.body AND earlier.id < later.id
+        AND earlier.body != '' AND abs(later.received_at - earlier.received_at) < 600000
+);
+
 unparsed:
 SELECT * FROM message WHERE parsed = 0 ORDER BY received_at;
 
